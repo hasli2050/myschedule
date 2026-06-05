@@ -252,7 +252,7 @@
             .logo h1 { font-size: 18px; }
             .form-row { grid-template-columns: 1fr; }
         }
-    </style.>
+    </style>
 </head>
 <body>
 <div class="container">
@@ -272,11 +272,10 @@
             <button class="icon-btn" id="themeBtn" title="Toggle Dark Mode">🌙</button>
             <div class="sync-status" id="syncStatus">
                 <span>☁️</span> <span>Connecting...</span>
-            </div.>
+            </div>
         </div>
     </div>
 
-    <!-- UP NEXT CARD -->
     <div class="up-next-card" id="upNextCard">
         <h3>⏳ Up Next</h3>
         <div class="title" id="upNextTitle">No upcoming reminders</div>
@@ -451,9 +450,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-
-// Enable offline persistence
-db.enablePersistence().catch(err => console.log("Offline persistence error:", err));
+db.enablePersistence().catch(() => {});
 
 // ========================
 // 2. APP STATE
@@ -461,10 +458,6 @@ db.enablePersistence().catch(err => console.log("Offline persistence error:", er
 function getTodayStr() {
     const t = new Date();
     return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
-}
-function getCurrentTimeStr() {
-    const t = new Date();
-    return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
 }
 
 let currentViewDate = new Date();
@@ -486,7 +479,7 @@ const reminderPopup = $('reminderPopup');
 const toastContainer = $('toastContainer');
 
 // ========================
-// 3. PWA NOTIFICATION SYSTEM
+// 3. NOTIFICATION SYSTEM
 // ========================
 async function requestNotificationPermission() {
     if (!("Notification" in window)) {
@@ -494,12 +487,12 @@ async function requestNotificationPermission() {
         return false;
     }
     if (Notification.permission === "granted") {
-        showToast("✅", "Already Active", "Notifications are already enabled for this PWA.");
+        showToast("✅", "Already Active", "Notifications are already enabled.");
         $('notifBtn').classList.remove('pending-perm');
         return true;
     }
     if (Notification.permission === "denied") {
-        showToast("⚠️", "Blocked", "Please enable notifications in your device Settings.");
+        showToast("⚠️", "Blocked", "Please enable notifications in device Settings.");
         return false;
     }
     
@@ -508,7 +501,7 @@ async function requestNotificationPermission() {
         showToast("✅", "Success!", "PWA Notifications are now active.");
         $('notifBtn').classList.remove('pending-perm');
         new Notification("🎉 MySchedule PWA", { 
-            body: "Test successful! You will receive reminders right on time.", 
+            body: "Test successful! You will receive reminders on time.", 
             icon: "https://arleta.site/interactivelink/4045/MySchedule.png" 
         });
         return true;
@@ -516,20 +509,15 @@ async function requestNotificationPermission() {
     return false;
 }
 
-$('notifBtn').onclick = async () => {
-    await requestNotificationPermission();
-};
+$('notifBtn').onclick = async () => { await requestNotificationPermission(); };
 
 function triggerWebNotification(title, body) {
     if (Notification.permission === "granted") {
         try {
             new Notification("📅 " + title, {
-                body: body,
-                icon: "https://arleta.site/interactivelink/4045/MySchedule.png",
+                body, icon: "https://arleta.site/interactivelink/4045/MySchedule.png",
                 badge: "https://arleta.site/interactivelink/4045/MySchedule.png",
-                tag: "reminder-" + Date.now(),
-                requireInteraction: true,
-                vibrate: [200, 100, 200]
+                tag: "reminder-" + Date.now(), requireInteraction: true, vibrate: [200, 100, 200]
             });
         } catch(e) { console.error(e); }
     }
@@ -549,19 +537,8 @@ function showToast(icon, title, message, duration = 5000) {
 function playAlertSound() {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const playBeep = (freq, startTime, duration) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.frequency.value = freq; osc.type = 'sine';
-            gain.gain.setValueAtTime(0.3, startTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-            osc.start(startTime); osc.stop(startTime + duration);
-        };
-        const now = ctx.currentTime;
-        playBeep(880, now, 0.2);
-        playBeep(880, now + 0.3, 0.2);
-        playBeep(1175, now + 0.6, 0.4);
+        const playBeep = (f, t, d) => { const o=ctx.createOscillator(), g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=f; o.type='sine'; g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.01,t+d); o.start(t); o.stop(t+d); };
+        const now = ctx.currentTime; playBeep(880,now,0.2); playBeep(880,now+0.3,0.2); playBeep(1175,now+0.6,0.4);
     } catch(e) {}
 }
 
@@ -577,17 +554,13 @@ function checkReminders() {
     const currentDateStr = getTodayStr();
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
     reminders.forEach(rem => {
         if (rem.completed || rem.date !== currentDateStr || !rem.time) return;
-        
         const [h, m] = rem.time.split(':').map(Number);
         if ((h * 60 + m) !== nowMinutes) return;
-        
-        const notifiedKey = `notified_${rem.id}_${currentDateStr}_${rem.time}`;
-        if (localStorage.getItem(notifiedKey)) return;
-        
-        localStorage.setItem(notifiedKey, "true");
+        const key = `notified_${rem.id}_${currentDateStr}_${rem.time}`;
+        if (localStorage.getItem(key)) return;
+        localStorage.setItem(key, "true");
         triggerWebNotification(rem.title, rem.notes || `Time: ${rem.time}`);
         showToast("🔔", rem.title, rem.notes || `${rem.date} • ${rem.time}`, 10000);
         showReminderPopup(rem);
@@ -603,7 +576,6 @@ async function loadReminders() {
         reminders = [];
         snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
         renderAll();
-        
         const isOnline = navigator.onLine;
         syncStatus.innerHTML = isOnline ? "<span>✅</span> <span>Sync Live</span>" : "<span>📡</span> <span>Offline Mode</span>";
         syncStatus.className = isOnline ? "sync-status" : "sync-status offline";
@@ -622,13 +594,9 @@ $('saveBtn').onclick = async () => {
     const priority = $('reminderPriority').value;
     const notes = $('reminderNotes').value.trim();
     
-    if (!title || !date) {
-        showToast("⚠️", "Error", "Title and date are required!");
-        return;
-    }
+    if (!title || !date) { showToast("⚠️", "Error", "Title and date are required!"); return; }
     
     const data = { title, date, time, category, priority, notes, completed: false, createdAt: new Date().toISOString() };
-    
     try {
         if ($('editId').value) {
             await db.collection('reminders').doc($('editId').value).update(data);
@@ -637,21 +605,13 @@ $('saveBtn').onclick = async () => {
             await db.collection('reminders').add(data);
             showToast("✅", "Added", "New reminder successfully added");
         }
-        clearForm();
-        await loadReminders();
-    } catch (error) {
-        showToast("❌", "Failed", error.message);
-    }
+        clearForm(); await loadReminders();
+    } catch (error) { showToast("❌", "Failed", error.message); }
 };
 
 function clearForm() {
-    $('reminderTitle').value = "";
-    $('reminderDate').value = "";
-    $('reminderTime').value = "";
-    $('reminderNotes').value = "";
-    $('reminderCategory').value = "work";
-    $('reminderPriority').value = "medium";
-    $('editId').value = "";
+    $('reminderTitle').value = ""; $('reminderDate').value = ""; $('reminderTime').value = "";
+    $('reminderNotes').value = ""; $('reminderCategory').value = "work"; $('reminderPriority').value = "medium"; $('editId').value = "";
 }
 
 async function deleteReminder(id) {
@@ -672,37 +632,18 @@ async function toggleComplete(id) {
 function openEditModal(rem) {
     if (!rem) return;
     currentEditId = rem.id;
-    $('modalTitle').value = rem.title || "";
-    $('modalDate').value = rem.date || "";
-    $('modalTime').value = rem.time || "";
-    $('modalCategory').value = rem.category || "work";
-    $('modalPriority').value = rem.priority || "medium";
-    $('modalNotes').value = rem.notes || "";
+    $('modalTitle').value = rem.title || ""; $('modalDate').value = rem.date || "";
+    $('modalTime').value = rem.time || ""; $('modalCategory').value = rem.category || "work";
+    $('modalPriority').value = rem.priority || "medium"; $('modalNotes').value = rem.notes || "";
     modal.classList.add('show');
 }
 
 $('modalSaveBtn').onclick = async () => {
     if (!currentEditId) return;
-    const data = {
-        title: $('modalTitle').value.trim(),
-        date: $('modalDate').value,
-        time: $('modalTime').value || "00:00",
-        category: $('modalCategory').value,
-        priority: $('modalPriority').value,
-        notes: $('modalNotes').value.trim()
-    };
-    if (!data.title || !data.date) {
-        showToast("⚠️", "Error", "Title and date are required!");
-        return;
-    }
-    try {
-        await db.collection('reminders').doc(currentEditId).update(data);
-        modal.classList.remove('show');
-        showToast("✅", "Updated", "Reminder successfully updated");
-        await loadReminders();
-    } catch (error) {
-        showToast("❌", "Failed", error.message);
-    }
+    const data = { title: $('modalTitle').value.trim(), date: $('modalDate').value, time: $('modalTime').value || "00:00", category: $('modalCategory').value, priority: $('modalPriority').value, notes: $('modalNotes').value.trim() };
+    if (!data.title || !data.date) { showToast("⚠️", "Error", "Title and date are required!"); return; }
+    try { await db.collection('reminders').doc(currentEditId).update(data); modal.classList.remove('show'); showToast("✅", "Updated", "Reminder successfully updated"); await loadReminders(); } 
+    catch (error) { showToast("❌", "Failed", error.message); }
 };
 $('modalCancelBtn').onclick = () => modal.classList.remove('show');
 
@@ -714,65 +655,43 @@ function getFilteredReminders() {
         const rDate = new Date(r.date + "T00:00:00");
         const viewYear = currentViewDate.getFullYear();
         const viewMonth = currentViewDate.getMonth();
-        
         let periodMatch = false;
         if (currentPeriod === 'daily') periodMatch = r.date === selectedDate;
-        else if (currentPeriod === 'weekly') {
-            const sel = new Date(selectedDate + "T00:00:00");
-            const start = new Date(sel); start.setDate(sel.getDate() - sel.getDay());
-            const end = new Date(start); end.setDate(start.getDate() + 6);
-            periodMatch = rDate >= start && rDate <= end;
-        }
-        else if (currentPeriod === 'monthly') periodMatch = rDate.getFullYear() === viewYear && rDate.getMonth() === viewMonth;
-        else if (currentPeriod === 'yearly') periodMatch = rDate.getFullYear() === viewYear;
-        
-        const catMatch = currentFilter === 'all' || r.category === currentFilter;
+        else if (currentPeriod === 'weekly') { const sel=new Date(selectedDate+"T00:00:00"); const start=new Date(sel); start.setDate(sel.getDate()-sel.getDay()); const end=new Date(start); end.setDate(start.getDate()+6); periodMatch = rDate>=start && rDate<=end; }
+        else if (currentPeriod === 'monthly') periodMatch = rDate.getFullYear()===viewYear && rDate.getMonth()===viewMonth;
+        else if (currentPeriod === 'yearly') periodMatch = rDate.getFullYear()===viewYear;
+        const catMatch = currentFilter==='all' || r.category===currentFilter;
         const searchMatch = !searchQuery || r.title.toLowerCase().includes(searchQuery.toLowerCase()) || (r.notes && r.notes.toLowerCase().includes(searchQuery.toLowerCase()));
-        
         return periodMatch && catMatch && searchMatch;
     }).sort((a,b) => {
         if (a.completed !== b.completed) return a.completed ? 1 : -1;
-        if (a.date === b.date) return (a.time || '').localeCompare(b.time || '');
+        if (a.date === b.date) return (a.time||'').localeCompare(b.time||'');
         return a.date.localeCompare(b.date);
     });
 }
 
 function renderCalendar() {
     calendarDaysDiv.innerHTML = '';
-    const year = currentViewDate.getFullYear();
-    const month = currentViewDate.getMonth();
+    const year = currentViewDate.getFullYear(); const month = currentViewDate.getMonth();
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
-    
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const prevMonthDays = new Date(year, month, 0).getDate();
-    
-    for (let i = firstDay - 1; i >= 0; i--) {
-        calendarDaysDiv.innerHTML += `<div class="day-cell other-month">${prevMonthDays - i}</div>`;
-    }
-    
+    for (let i = firstDay - 1; i >= 0; i--) calendarDaysDiv.innerHTML += `<div class="day-cell other-month">${prevMonthDays - i}</div>`;
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const hasReminder = reminders.some(r => r.date === dateStr && !r.completed);
-        const isToday = dateStr === getTodayStr();
-        const isSelected = dateStr === selectedDate;
-        
-        let cls = 'day-cell';
-        if (isToday) cls += ' today';
-        if (isSelected) cls += ' selected';
-        
+        const isToday = dateStr === getTodayStr(); const isSelected = dateStr === selectedDate;
+        let cls = 'day-cell'; if (isToday) cls += ' today'; if (isSelected) cls += ' selected';
         calendarDaysDiv.innerHTML += `<div class="${cls}" data-date="${dateStr}"><span>${day}</span>${hasReminder ? '<div class="reminder-dot"></div>' : ''}</div>`;
     }
-    
     document.querySelectorAll('.day-cell[data-date]').forEach(cell => {
         cell.onclick = () => {
-            selectedDate = cell.dataset.date;
-            currentPeriod = 'daily';
+            selectedDate = cell.dataset.date; currentPeriod = 'daily';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('.tab-btn[data-period="daily"]').classList.add('active');
-            renderCalendar();
-            renderReminderList();
+            renderCalendar(); renderReminderList();
         };
     });
 }
@@ -780,39 +699,15 @@ function renderCalendar() {
 function renderReminderList() {
     reminderListDiv.innerHTML = '';
     const filtered = getFilteredReminders();
-    
-    if (filtered.length === 0) {
-        reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No reminders for this period</p></div>`;
-        return;
-    }
-    
+    if (filtered.length === 0) { reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No reminders for this period</p></div>`; return; }
     filtered.forEach(rem => {
         const catLabels = { work: '💼 Work', personal: '👤 Personal', health: '💚 Health', finance: '💰 Finance', other: '📌 Other' };
         const priorityLabels = { high: '🔴 HIGH', medium: '🟡 MED', low: '🟢 LOW' };
-        
         const div = document.createElement('div');
         div.className = `reminder-item priority-${rem.priority || 'medium'} ${rem.completed ? 'completed' : ''}`;
-        div.innerHTML = `
-            <div class="reminder-info">
-                <h4>${rem.completed ? '✅ ' : ''}${rem.title}</h4>
-                <div class="reminder-meta">
-                    <span>🕒 ${rem.time || '--:--'}</span>
-                    <span>📅 ${rem.date}</span>
-                    <span class="category-badge cat-${rem.category || 'other'}">${catLabels[rem.category || 'other']}</span>
-                    <span class="priority-badge">${priorityLabels[rem.priority || 'medium']}</span>
-                </div>
-                ${rem.notes ? `<div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">📝 ${rem.notes}</div>` : ''}
-            </div>
-            <div class="reminder-actions">
-                <button class="action-btn btn-complete" data-id="${rem.id}" title="Toggle Complete">${rem.completed ? '↩️' : '✅'}</button>
-                <button class="action-btn btn-share" data-id="${rem.id}" title="Share">📤</button>
-                <button class="action-btn btn-edit" data-id="${rem.id}" title="Edit">✏️</button>
-                <button class="action-btn btn-delete" data-id="${rem.id}" title="Delete">🗑️</button>
-            </div>
-        `;
+        div.innerHTML = `<div class="reminder-info"><h4>${rem.completed ? '✅ ' : ''}${rem.title}</h4><div class="reminder-meta"><span>🕒 ${rem.time || '--:--'}</span><span>📅 ${rem.date}</span><span class="category-badge cat-${rem.category || 'other'}">${catLabels[rem.category || 'other']}</span><span class="priority-badge">${priorityLabels[rem.priority || 'medium']}</span></div>${rem.notes ? `<div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">📝 ${rem.notes}</div>` : ''}</div><div class="reminder-actions"><button class="action-btn btn-complete" data-id="${rem.id}" title="Toggle Complete">${rem.completed ? '↩️' : '✅'}</button><button class="action-btn btn-share" data-id="${rem.id}" title="Share">📤</button><button class="action-btn btn-edit" data-id="${rem.id}" title="Edit">✏️</button><button class="action-btn btn-delete" data-id="${rem.id}" title="Delete">🗑️</button></div>`;
         reminderListDiv.appendChild(div);
     });
-    
     reminderListDiv.querySelectorAll('.btn-complete').forEach(b => b.onclick = () => toggleComplete(b.dataset.id));
     reminderListDiv.querySelectorAll('.btn-share').forEach(b => b.onclick = () => shareReminder(b.dataset.id));
     reminderListDiv.querySelectorAll('.btn-edit').forEach(b => b.onclick = () => openEditModal(reminders.find(r => r.id === b.dataset.id)));
@@ -820,148 +715,53 @@ function renderReminderList() {
 }
 
 async function shareReminder(id) {
-    const rem = reminders.find(r => r.id === id);
-    if (!rem) return;
+    const rem = reminders.find(r => r.id === id); if (!rem) return;
     const text = `📅 Reminder: ${rem.title}\n🕒 ${rem.date} at ${rem.time || 'All day'}\n📝 ${rem.notes || 'No notes'}`;
-    
-    if (navigator.share) {
-        try {
-            await navigator.share({ title: 'MySchedule Reminder', text: text });
-        } catch (err) { console.log('Share canceled'); }
-    } else {
-        // Fallback to WhatsApp
-        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
-    }
+    if (navigator.share) { try { await navigator.share({ title: 'MySchedule Reminder', text }); } catch (err) {} } 
+    else { window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); }
 }
 
 function renderUpNext() {
-    const now = new Date();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const todayStr = getTodayStr();
-    
-    // Find the closest upcoming reminder that is not completed
-    const upcoming = reminders
-        .filter(r => !r.completed)
-        .sort((a, b) => {
-            const dateA = new Date(a.date + "T" + (a.time || "00:00"));
-            const dateB = new Date(b.date + "T" + (b.time || "00:00"));
-            return dateA - dateB;
-        })
-        .find(r => {
-            if (r.date > todayStr) return true;
-            if (r.date === todayStr && r.time) {
-                const [h, m] = r.time.split(':').map(Number);
-                return (h * 60 + m) > nowMinutes;
-            }
-            return false;
-        });
-
+    const now = new Date(); const nowMinutes = now.getHours() * 60 + now.getMinutes(); const todayStr = getTodayStr();
+    const upcoming = reminders.filter(r => !r.completed).sort((a,b) => new Date(a.date+"T"+(a.time||"00:00")) - new Date(b.date+"T"+(b.time||"00:00"))).find(r => r.date > todayStr || (r.date === todayStr && r.time && (r.time.split(':')[0]*60 + r.time.split(':')[1]*1) > nowMinutes));
     const card = $('upNextCard');
-    if (upcoming) {
-        card.classList.add('show');
-        $('upNextTitle').textContent = upcoming.title;
-        $('upNextTime').innerHTML = `🕒 ${upcoming.date} at ${upcoming.time || 'All day'} <span class="category-badge cat-${upcoming.category || 'other'}" style="margin-left:8px">${upcoming.category || 'Other'}</span>`;
-    } else {
-        card.classList.remove('show');
-    }
+    if (upcoming) { card.classList.add('show'); $('upNextTitle').textContent = upcoming.title; $('upNextTime').innerHTML = `🕒 ${upcoming.date} at ${upcoming.time || 'All day'} <span class="category-badge cat-${upcoming.category || 'other'}" style="margin-left:8px">${upcoming.category || 'Other'}</span>`; } 
+    else { card.classList.remove('show'); }
 }
 
 function renderStats() {
-    const today = getTodayStr();
-    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-    const total = reminders.length;
-    const done = reminders.filter(r => r.completed).length;
-    const overdue = reminders.filter(r => {
-        if (r.completed) return false;
-        if (r.date > today) return false;
-        if (r.date < today) return true;
-        if (!r.time) return false;
-        const [h, m] = r.time.split(':').map(Number);
-        return (h * 60 + m) < nowMin;
-    }).length;
-    
-    $('statTotal').textContent = total;
-    $('statPending').textContent = total - done;
-    $('statDone').textContent = done;
-    $('statOverdue').textContent = overdue;
+    const today = getTodayStr(); const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const total = reminders.length; const done = reminders.filter(r => r.completed).length;
+    const overdue = reminders.filter(r => !r.completed && (r.date < today || (r.date === today && r.time && (r.time.split(':')[0]*60 + r.time.split(':')[1]*1) < nowMin))).length;
+    $('statTotal').textContent = total; $('statPending').textContent = total - done; $('statDone').textContent = done; $('statOverdue').textContent = overdue;
 }
 
-function renderAll() {
-    renderCalendar();
-    renderReminderList();
-    renderStats();
-    renderUpNext();
-}
+function renderAll() { renderCalendar(); renderReminderList(); renderStats(); renderUpNext(); }
 
 // ========================
 // 6. EVENT LISTENERS
 // ========================
 $('prevMonthBtn').onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); renderCalendar(); };
 $('nextMonthBtn').onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); renderCalendar(); };
-
 document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.onclick = () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentPeriod = btn.dataset.period;
-        renderReminderList();
-    };
+    btn.onclick = () => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentPeriod = btn.dataset.period; renderReminderList(); };
 });
-
 $('searchInput').oninput = (e) => { searchQuery = e.target.value; renderReminderList(); };
-document.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.onclick = () => {
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        currentFilter = chip.dataset.cat;
-        renderReminderList();
-    };
-});
-
-$('themeBtn').onclick = () => {
-    document.body.classList.toggle('dark');
-    const isDark = document.body.classList.contains('dark');
-    $('themeBtn').textContent = isDark ? '☀️' : '🌙';
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-};
-
-$('fabBtn').onclick = () => {
-    $('reminderDate').value = selectedDate;
-    $('reminderTitle').focus();
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-};
-
-$('popupComplete').onclick = () => {
-    if (currentPopupReminder) {
-        toggleComplete(currentPopupReminder.id);
-        reminderPopup.classList.remove('show');
-    }
-};
+document.querySelectorAll('.filter-chip').forEach(chip => { chip.onclick = () => { document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); currentFilter = chip.dataset.cat; renderReminderList(); }; });
+$('themeBtn').onclick = () => { document.body.classList.toggle('dark'); const isDark = document.body.classList.contains('dark'); $('themeBtn').textContent = isDark ? '☀️' : '🌙'; localStorage.setItem('theme', isDark ? 'dark' : 'light'); };
+$('fabBtn').onclick = () => { $('reminderDate').value = selectedDate; $('reminderTitle').focus(); window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); };
+$('popupComplete').onclick = () => { if (currentPopupReminder) { toggleComplete(currentPopupReminder.id); reminderPopup.classList.remove('show'); } };
 $('popupDismiss').onclick = () => reminderPopup.classList.remove('show');
-
-// Online/Offline detection
 window.addEventListener('online', () => { syncStatus.innerHTML = "<span>✅</span> <span>Sync Live</span>"; syncStatus.className = "sync-status"; });
 window.addEventListener('offline', () => { syncStatus.innerHTML = "<span>📡</span> <span>Offline Mode</span>"; syncStatus.className = "sync-status offline"; });
 
 // ========================
 // 7. INITIALIZATION
 // ========================
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
-    $('themeBtn').textContent = '☀️';
-}
+if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); $('themeBtn').textContent = '☀️'; }
 $('reminderDate').value = getTodayStr();
-
-// Check reminders every 15 seconds
-setInterval(checkReminders, 15000);
-setTimeout(checkReminders, 2000);
-
-// Check if notification permission is pending to show the red badge
-if ("Notification" in window && Notification.permission === "default") {
-    $('notifBtn').classList.add('pending-perm');
-}
-
+setInterval(checkReminders, 15000); setTimeout(checkReminders, 2000);
+if ("Notification" in window && Notification.permission === "default") $('notifBtn').classList.add('pending-perm');
 loadReminders();
 </script>
 </body>
