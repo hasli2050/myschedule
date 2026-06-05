@@ -18,72 +18,69 @@
         body {
             background: linear-gradient(135deg, #f0f4ff 0%, #e8eef9 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         .header {
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.95);
             backdrop-filter: blur(10px);
-            border-radius: 32px;
-            padding: 20px 32px;
-            margin-bottom: 24px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 28px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 12px;
         }
 
         .logo h1 {
-            font-size: 28px;
+            font-size: 24px;
             background: linear-gradient(135deg, #1e3a8a, #3b82f6);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: -0.5px;
         }
 
         .logo p {
-            font-size: 12px;
+            font-size: 10px;
             color: #6b7280;
-            margin-top: 4px;
         }
 
         .sync-status {
             background: #10b98120;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 40px;
-            font-size: 13px;
+            font-size: 11px;
             color: #059669;
             font-weight: 500;
         }
 
         .tabs {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             background: white;
-            padding: 8px;
-            border-radius: 60px;
-            margin-bottom: 28px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 6px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             flex-wrap: wrap;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 14px 20px;
+            padding: 10px 16px;
             border: none;
             background: transparent;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            border-radius: 50px;
+            border-radius: 40px;
             cursor: pointer;
             transition: all 0.2s ease;
             color: #64748b;
@@ -92,32 +89,63 @@
         .tab-btn.active {
             background: linear-gradient(135deg, #1e3a8a, #2563eb);
             color: white;
-            box-shadow: 0 6px 14px rgba(37,99,235,0.3);
+            box-shadow: 0 4px 10px rgba(37,99,235,0.3);
         }
 
         .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Mobile: Senarai di atas, form di bawah */
+        .reminder-section {
+            order: 1;
+        }
+
+        .form-section {
+            order: 2;
+        }
+
+        .calendar-section {
+            order: 0;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard {
+                display: grid;
+                grid-template-columns: 1fr 1.2fr;
+                gap: 24px;
+            }
+            .reminder-section {
+                order: 1;
+            }
+            .form-section {
+                order: 2;
+            }
+            .calendar-section {
+                order: 0;
+                grid-column: 1 / 2;
+                grid-row: span 2;
+            }
         }
 
         .card {
             background: white;
-            border-radius: 28px;
-            padding: 24px;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .month-year {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             color: #0f172a;
         }
@@ -125,10 +153,10 @@
         .nav-btn {
             background: #f1f5f9;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
         }
 
@@ -138,13 +166,14 @@
             text-align: center;
             font-weight: 600;
             color: #3b82f6;
-            margin-bottom: 12px;
+            font-size: 12px;
+            margin-bottom: 8px;
         }
 
         .calendar-days {
             display: grid;
             grid-template-columns: repeat(7,1fr);
-            gap: 6px;
+            gap: 4px;
         }
 
         .day-cell {
@@ -152,9 +181,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 16px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 500;
+            font-size: 13px;
             background: #f8fafc;
         }
 
@@ -168,23 +198,13 @@
             background: white;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            font-weight: 600;
-            color: #1e293b;
-            display: block;
-            margin-bottom: 8px;
-        }
-
         input, textarea {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 14px;
             border: 1.5px solid #e2e8f0;
-            border-radius: 20px;
-            font-size: 15px;
+            border-radius: 16px;
+            font-size: 14px;
+            transition: 0.2s;
         }
 
         input:focus, textarea:focus {
@@ -197,61 +217,131 @@
             background: linear-gradient(135deg, #1e3a8a, #3b82f6);
             color: white;
             border: none;
-            padding: 14px 20px;
+            padding: 12px 16px;
             border-radius: 40px;
-            font-weight: 700;
-            font-size: 16px;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
             width: 100%;
         }
 
         .reminder-item {
             background: #f8fafc;
-            border-radius: 24px;
-            padding: 16px;
-            margin-bottom: 12px;
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .reminder-info {
+            flex: 1;
         }
 
         .reminder-info h4 {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 6px;
         }
 
         .reminder-meta {
-            font-size: 13px;
+            font-size: 11px;
             color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .reminder-notes {
+            font-size: 11px;
+            color: #6b7280;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 4px;
         }
 
         .delete-btn {
             background: #fee2e2;
             border: none;
-            padding: 8px 14px;
+            padding: 6px 12px;
             border-radius: 30px;
             color: #dc2626;
             font-weight: bold;
+            font-size: 12px;
             cursor: pointer;
         }
 
         .edit-btn {
             background: #e0e7ff;
             border: none;
-            padding: 8px 14px;
+            padding: 6px 12px;
             border-radius: 30px;
             color: #2563eb;
             font-weight: bold;
+            font-size: 12px;
             cursor: pointer;
-            margin-left: 8px;
+            margin-left: 6px;
         }
 
-        @media (max-width: 800px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
+        /* Modal Popup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            margin: 20px;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-buttons button:first-child {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .modal-buttons button:last-child {
+            background: #3b82f6;
+            color: white;
+        }
+
+        @media (max-width: 480px) {
             body {
                 padding: 12px;
+            }
+            .card {
+                padding: 16px;
             }
         }
     </style>
@@ -263,10 +353,10 @@
             <h1>📅 MySchedule</h1>
             <p>Premium Reminder · Sync Semua Peranti</p>
         </div>
-        <div class="sync-status" id="syncStatus">☁️ Menyambung ke Cloud...</div>
+        <div class="sync-status" id="syncStatus">☁️ Menyambung...</div>
     </div>
 
-    <div class="tabs" id="tabContainer">
+    <div class="tabs">
         <button class="tab-btn active" data-period="daily">📆 Daily</button>
         <button class="tab-btn" data-period="weekly">📅 Weekly</button>
         <button class="tab-btn" data-period="monthly">📆 Monthly</button>
@@ -274,32 +364,49 @@
     </div>
 
     <div class="dashboard">
-        <div>
-            <div class="card">
-                <div class="calendar-header">
-                    <button class="nav-btn" id="prevMonthBtn">←</button>
-                    <span class="month-year" id="monthYearDisplay"></span>
-                    <button class="nav-btn" id="nextMonthBtn">→</button>
-                </div>
-                <div class="weekdays">
-                    <span>Ahd</span><span>Isn</span><span>Sel</span><span>Rab</span><span>Kha</span><span>Jum</span><span>Sab</span>
-                </div>
-                <div class="calendar-days" id="calendarDays"></div>
+        <!-- Kalendar -->
+        <div class="card calendar-section">
+            <div class="calendar-header">
+                <button class="nav-btn" id="prevMonthBtn">←</button>
+                <span class="month-year" id="monthYearDisplay"></span>
+                <button class="nav-btn" id="nextMonthBtn">→</button>
             </div>
-
-            <div class="card" style="margin-top: 24px;">
-                <h3 style="margin-bottom: 20px;">✨ Tambah / Edit Reminder</h3>
-                <input type="text" id="reminderTitle" placeholder="Tajuk reminder" style="margin-bottom: 12px;">
-                <input type="date" id="reminderDate">
-                <input type="time" id="reminderTime" style="margin: 12px 0;">
-                <button class="btn-primary" id="saveBtn">💾 Simpan Reminder</button>
-                <input type="hidden" id="editId" value="">
+            <div class="weekdays">
+                <span>Ahd</span><span>Isn</span><span>Sel</span><span>Rab</span><span>Kha</span><span>Jum</span><span>Sab</span>
             </div>
+            <div class="calendar-days" id="calendarDays"></div>
         </div>
 
-        <div class="card">
-            <h3 style="margin-bottom: 20px;">📋 Senarai Schedule</h3>
-            <div id="reminderList">Loading reminders...</div>
+        <!-- Senarai Schedule (Atas untuk mobile) -->
+        <div class="card reminder-section">
+            <h3 style="margin-bottom: 16px;">📋 Senarai Schedule</h3>
+            <div id="reminderList">Loading...</div>
+        </div>
+
+        <!-- Form Tambah/Edit (Bawah untuk mobile) -->
+        <div class="card form-section">
+            <h3 style="margin-bottom: 16px;">✨ Tambah / Edit Reminder</h3>
+            <input type="text" id="reminderTitle" placeholder="Tajuk reminder *" style="margin-bottom: 12px;">
+            <input type="date" id="reminderDate" style="margin-bottom: 12px;">
+            <input type="time" id="reminderTime" placeholder="HH:MM" style="margin-bottom: 12px;" title="Format 24 jam, contoh: 14:30">
+            <textarea id="reminderNotes" rows="2" placeholder="Nota tambahan (contoh: lokasi, pautan, senarai)" style="margin-bottom: 16px;"></textarea>
+            <button class="btn-primary" id="saveBtn">💾 Simpan Reminder</button>
+            <input type="hidden" id="editId" value="">
+        </div>
+    </div>
+</div>
+
+<!-- Modal Popup untuk Edit -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>✏️ Edit Reminder</h3>
+        <input type="text" id="modalTitle" placeholder="Tajuk" style="margin-bottom: 12px;">
+        <input type="date" id="modalDate" style="margin-bottom: 12px;">
+        <input type="time" id="modalTime" style="margin-bottom: 12px;">
+        <textarea id="modalNotes" rows="2" placeholder="Nota"></textarea>
+        <div class="modal-buttons">
+            <button id="modalCancelBtn">Batal</button>
+            <button id="modalSaveBtn">Simpan</button>
         </div>
     </div>
 </div>
@@ -307,24 +414,24 @@
 <script>
     // 🔴🔴🔴 PASTE firebaseConfig AWAK DI SINI 🔴🔴🔴
     const firebaseConfig = {
-         apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
+        apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
   authDomain: "myschedule2050.firebaseapp.com",
   projectId: "myschedule2050",
   storageBucket: "myschedule2050.firebasestorage.app",
   messagingSenderId: "483213696345",
   appId: "1:483213696345:web:8f6bc228ddfafb5b98c048"
+};
     };
-    // 🔴🔴🔴 SAMPAI SINI SAHAJA 🔴🔴🔴
+    // 🔴🔴🔴 SAMPAI SINI 🔴🔴🔴
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // State
     let currentViewDate = new Date();
     let selectedDate = new Date().toISOString().split('T')[0];
     let currentPeriod = 'daily';
     let reminders = [];
+    let currentEditId = null;
 
     // DOM elements
     const calendarDaysDiv = document.getElementById('calendarDays');
@@ -333,11 +440,21 @@
     const reminderTitle = document.getElementById('reminderTitle');
     const reminderDate = document.getElementById('reminderDate');
     const reminderTime = document.getElementById('reminderTime');
+    const reminderNotes = document.getElementById('reminderNotes');
     const saveBtn = document.getElementById('saveBtn');
     const editId = document.getElementById('editId');
     const syncStatus = document.getElementById('syncStatus');
 
-    // Load reminders from Firestore
+    // Modal elements
+    const modal = document.getElementById('editModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDate = document.getElementById('modalDate');
+    const modalTime = document.getElementById('modalTime');
+    const modalNotes = document.getElementById('modalNotes');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalSaveBtn = document.getElementById('modalSaveBtn');
+
+    // Load reminders
     async function loadReminders() {
         try {
             const snapshot = await db.collection('reminders').orderBy('date').get();
@@ -351,25 +468,26 @@
             syncStatus.style.background = "#10b98120";
             syncStatus.style.color = "#059669";
         } catch (error) {
-            console.error("Firebase error:", error);
-            syncStatus.innerText = "⚠️ Ralat Firebase - Periksa config / test mode";
+            console.error(error);
+            syncStatus.innerText = "⚠️ Ralat Firebase";
             syncStatus.style.background = "#fee2e2";
             syncStatus.style.color = "#dc2626";
         }
     }
 
-    // Save reminder
+    // Save new reminder
     saveBtn.onclick = async () => {
         const title = reminderTitle.value.trim();
         const date = reminderDate.value;
         const time = reminderTime.value || "00:00";
-        
+        const notes = reminderNotes.value.trim();
+
         if (!title || !date) {
             alert("Tajuk dan tarikh wajib diisi!");
             return;
         }
 
-        const data = { title, date, time };
+        const data = { title, date, time, notes };
 
         try {
             if (editId.value) {
@@ -381,6 +499,7 @@
             reminderTitle.value = "";
             reminderDate.value = "";
             reminderTime.value = "";
+            reminderNotes.value = "";
             await loadReminders();
             scheduleNotification(data);
         } catch (error) {
@@ -396,15 +515,42 @@
         }
     };
 
-    // Edit reminder
-    window.editReminder = (rem) => {
-        reminderTitle.value = rem.title;
-        reminderDate.value = rem.date;
-        reminderTime.value = rem.time;
-        editId.value = rem.id;
+    // Open modal for edit
+    window.openEditModal = (rem) => {
+        currentEditId = rem.id;
+        modalTitle.value = rem.title;
+        modalDate.value = rem.date;
+        modalTime.value = rem.time || "00:00";
+        modalNotes.value = rem.notes || "";
+        modal.style.display = "flex";
     };
 
-    // Filter by period
+    // Save from modal
+    modalSaveBtn.onclick = async () => {
+        const data = {
+            title: modalTitle.value.trim(),
+            date: modalDate.value,
+            time: modalTime.value || "00:00",
+            notes: modalNotes.value.trim()
+        };
+        if (!data.title || !data.date) {
+            alert("Tajuk dan tarikh wajib diisi!");
+            return;
+        }
+        await db.collection('reminders').doc(currentEditId).update(data);
+        modal.style.display = "none";
+        await loadReminders();
+    };
+
+    modalCancelBtn.onclick = () => {
+        modal.style.display = "none";
+    };
+
+    window.onclick = (e) => {
+        if (e.target === modal) modal.style.display = "none";
+    };
+
+    // Filter reminders
     function filterReminders() {
         const refDate = new Date(selectedDate);
         const year = refDate.getFullYear();
@@ -427,7 +573,7 @@
     function renderReminderList() {
         const filtered = filterReminders();
         if (filtered.length === 0) {
-            reminderListDiv.innerHTML = '<div style="text-align:center;color:gray;">✨ Tiada jadual. Tambah baru!</div>';
+            reminderListDiv.innerHTML = '<div style="text-align:center;color:gray;padding:20px;">✨ Tiada jadual. Tambah baru!</div>';
             return;
         }
         reminderListDiv.innerHTML = filtered.map(rem => `
@@ -435,16 +581,18 @@
                 <div class="reminder-info">
                     <h4>📌 ${escapeHtml(rem.title)}</h4>
                     <div class="reminder-meta">📅 ${rem.date} ⏰ ${rem.time}</div>
+                    ${rem.notes ? `<div class="reminder-notes">📝 ${escapeHtml(rem.notes)}</div>` : ''}
                 </div>
                 <div>
                     <button class="delete-btn" onclick="deleteReminder('${rem.id}')">Hapus</button>
-                    <button class="edit-btn" onclick='editReminder(${JSON.stringify(rem)})'>Edit</button>
+                    <button class="edit-btn" onclick="openEditModal(${JSON.stringify(rem)})">Edit</button>
                 </div>
             </div>
         `).join('');
     }
 
     function escapeHtml(str) {
+        if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
@@ -453,23 +601,18 @@
         });
     }
 
-    // Calendar render (FIXED - correct date)
+    // Calendar
     function renderCalendar() {
         const year = currentViewDate.getFullYear();
         const month = currentViewDate.getMonth();
         const firstDayOfMonth = new Date(year, month, 1);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
-        
-        // Format month/year display
+        const startingDayOfWeek = firstDayOfMonth.getDay();
         const monthNames = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
         monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
         
         let calendarHtml = '';
-        // Empty cells before first day
-        for (let i = 0; i < startingDayOfWeek; i++) {
-            calendarHtml += '<div></div>';
-        }
+        for (let i = 0; i < startingDayOfWeek; i++) calendarHtml += '<div></div>';
         
         const today = new Date();
         const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
@@ -485,7 +628,6 @@
         }
         calendarDaysDiv.innerHTML = calendarHtml;
         
-        // Add click listeners
         document.querySelectorAll('.day-cell[data-date]').forEach(el => {
             el.addEventListener('click', () => {
                 selectedDate = el.dataset.date;
@@ -500,13 +642,11 @@
         currentViewDate.setMonth(currentViewDate.getMonth() - 1);
         renderCalendar();
     };
-    
     document.getElementById('nextMonthBtn').onclick = () => {
         currentViewDate.setMonth(currentViewDate.getMonth() + 1);
         renderCalendar();
     };
 
-    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -516,7 +656,7 @@
         });
     });
 
-    // Browser notification
+    // Notifications
     function scheduleNotification(rem) {
         if (!("Notification" in window)) return;
         if (Notification.permission === "granted") {
@@ -525,7 +665,7 @@
             const delay = reminderDateTime - now;
             if (delay > 0 && delay < 86400000) {
                 setTimeout(() => {
-                    new Notification("MySchedule", { body: `🔔 ${rem.title} pada ${rem.time}` });
+                    new Notification("MySchedule", { body: `🔔 ${rem.title} pada ${rem.time}${rem.notes ? `\n📝 ${rem.notes}` : ''}` });
                 }, delay);
             }
         } else if (Notification.permission !== "denied") {
@@ -533,16 +673,11 @@
         }
     }
 
-    // Initial load
     window.onload = async () => {
         reminderDate.value = selectedDate;
         await loadReminders();
-        if (Notification.permission === "default") Notification.requestPermission();
-        
-        // Real-time listener
-        db.collection('reminders').onSnapshot(() => {
-            loadReminders();
-        });
+        Notification.requestPermission();
+        db.collection('reminders').onSnapshot(() => loadReminders());
     };
 </script>
 </body>
