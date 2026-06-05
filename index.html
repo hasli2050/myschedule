@@ -182,8 +182,9 @@
         }
 
         .day-cell.today {
-            border: 2px solid #3b82f6;
-            background: white;
+            border: 3px solid #3b82f6;
+            background: #eff6ff;
+            font-weight: bold;
         }
 
         .day-number {
@@ -210,6 +211,11 @@
             border-radius: 16px;
             font-size: 14px;
             transition: 0.2s;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #94a3b8;
+            font-size: 13px;
         }
 
         input:focus, textarea:focus {
@@ -266,27 +272,24 @@
             margin-top: 4px;
         }
 
-        .delete-btn {
-            background: #fee2e2;
+        .delete-btn, .edit-btn {
             border: none;
             padding: 6px 12px;
             border-radius: 30px;
-            color: #dc2626;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .edit-btn {
-            background: #e0e7ff;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 30px;
-            color: #2563eb;
             font-weight: bold;
             font-size: 12px;
             cursor: pointer;
             margin-left: 6px;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .edit-btn {
+            background: #e0e7ff;
+            color: #2563eb;
         }
 
         .modal {
@@ -423,14 +426,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fix timezone issue - use UTC to get consistent date
-    function getTodayUTC() {
-        const now = new Date();
-        return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    // Helper to get consistent date string
+    function getTodayStr() {
+        const today = new Date();
+        return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     }
 
-    let currentViewDate = getTodayUTC();
-    let selectedDate = currentViewDate.toISOString().split('T')[0];
+    let currentViewDate = new Date();
+    let selectedDate = getTodayStr();
     let currentPeriod = 'daily';
     let reminders = [];
     let currentEditId = null;
@@ -465,6 +468,7 @@
             syncStatus.style.background = "#10b98120";
             syncStatus.style.color = "#059669";
         } catch (error) {
+            console.error(error);
             syncStatus.innerText = "⚠️ Firebase Error";
             syncStatus.style.background = "#fee2e2";
             syncStatus.style.color = "#dc2626";
@@ -496,29 +500,25 @@
         }
     };
 
-    window.deleteReminder = async (id) => {
+    async function deleteReminder(id) {
         if (confirm("Delete this reminder?")) {
             await db.collection('reminders').doc(id).delete();
             await loadReminders();
         }
-    };
+    }
 
-    window.openEditModal = (rem) => {
-        if (!rem || !rem.id) {
-            console.error("Invalid reminder data", rem);
-            return;
-        }
+    function openEditModal(rem) {
+        if (!rem || !rem.id) return;
         currentEditId = rem.id;
         modalTitle.value = rem.title || "";
         modalDate.value = rem.date || "";
         modalTime.value = rem.time || "00:00";
         modalNotes.value = rem.notes || "";
         modal.style.display = "flex";
-    };
+    }
 
     modalSaveBtn.onclick = async () => {
         if (!currentEditId) {
-            alert("No reminder selected for editing");
             modal.style.display = "none";
             return;
         }
@@ -586,11 +586,27 @@
                     ${rem.notes ? `<div class="reminder-notes">📝 ${escapeHtml(rem.notes)}</div>` : ''}
                 </div>
                 <div>
-                    <button class="delete-btn" onclick="deleteReminder('${rem.id}')">Delete</button>
-                    <button class="edit-btn" onclick="openEditModal(${JSON.stringify(rem)})">Edit</button>
+                    <button class="delete-btn" data-id="${rem.id}">Delete</button>
+                    <button class="edit-btn" data-id="${rem.id}">Edit</button>
                 </div>
             </div>
         `).join('');
+
+        // Attach event listeners dynamically
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = btn.getAttribute('data-id');
+                deleteReminder(id);
+            });
+        });
+        
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = btn.getAttribute('data-id');
+                const reminder = reminders.find(r => r.id === id);
+                if (reminder) openEditModal(reminder);
+            });
+        });
     }
 
     function escapeHtml(str) {
@@ -619,8 +635,7 @@
         let html = '';
         for (let i = 0; i < startWeekday; i++) html += '<div></div>';
         
-        const todayUTC = getTodayUTC();
-        const todayStr = todayUTC.toISOString().split('T')[0];
+        const todayStr = getTodayStr();
         const datesWithReminders = getDatesWithReminders();
         
         for (let d = 1; d <= daysInMonth; d++) {
