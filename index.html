@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <title>MySchedule | Premium Reminder</title>
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA Meta Tags (Penting untuk Mobile) -->
     <link rel="apple-touch-icon" href="https://arleta.site/interactivelink/4045/MySchedule.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,36 +13,52 @@
     <meta name="theme-color" content="#1e3a8a">
     <meta name="description" content="Premium Reminder with Cross-Device Sync">
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        :root {
+            --bg-primary: linear-gradient(135deg, #f0f4ff 0%, #e8eef9 100%);
+            --bg-card: #ffffff;
+            --bg-soft: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --accent: #3b82f6;
+            --accent-dark: #1e3a8a;
+            --shadow: rgba(0,0,0,0.08);
+        }
+        
+        body.dark {
+            --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --bg-card: #1e293b;
+            --bg-soft: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+            --shadow: rgba(0,0,0,0.3);
         }
 
         body {
-            background: linear-gradient(135deg, #f0f4ff 0%, #e8eef9 100%);
+            background: var(--bg-primary);
             min-height: 100vh;
             padding: 16px;
+            padding-bottom: 80px; /* Space for FAB */
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
 
         .header {
-            background: rgba(255,255,255,0.95);
+            background: var(--bg-card);
             backdrop-filter: blur(10px);
             border-radius: 28px;
             padding: 16px 24px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px var(--shadow);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -50,328 +66,171 @@
             gap: 12px;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo img { width: 40px; height: 40px; border-radius: 12px; }
+        .logo h1 { font-size: 20px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo p { font-size: 10px; color: var(--text-secondary); }
+
+        .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         
-        .logo img {
+        .icon-btn {
+            background: var(--bg-soft);
+            border: none;
             width: 40px;
             height: 40px;
-            border-radius: 12px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .icon-btn:active { transform: scale(0.9); }
         
-        .logo h1 {
-            font-size: 24px;
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .logo p {
-            font-size: 10px;
-            color: #6b7280;
-        }
-
         .sync-status {
             background: #10b98120;
             padding: 6px 12px;
             border-radius: 40px;
             font-size: 11px;
             color: #059669;
-            font-weight: 500;
+            font-weight: 600;
         }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-card { background: var(--bg-card); padding: 12px 8px; border-radius: 20px; text-align: center; box-shadow: 0 4px 12px var(--shadow); }
+        .stat-card .num { font-size: 20px; font-weight: 800; color: var(--accent); }
+        .stat-card .label { font-size: 10px; color: var(--text-secondary); margin-top: 4px; font-weight: 600; }
 
         .tabs {
-            display: flex;
-            gap: 8px;
-            background: white;
-            padding: 6px;
-            border-radius: 50px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            flex-wrap: wrap;
+            display: flex; gap: 6px; background: var(--bg-card); padding: 6px; border-radius: 50px; margin-bottom: 20px; box-shadow: 0 2px 8px var(--shadow); overflow-x: auto;
         }
-
         .tab-btn {
-            flex: 1;
-            padding: 10px 16px;
-            border: none;
-            background: transparent;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #64748b;
+            flex: 1; min-width: 70px; padding: 10px 12px; border: none; background: transparent; font-size: 12px; font-weight: 600; border-radius: 40px; cursor: pointer; transition: all 0.2s ease; color: var(--text-secondary); white-space: nowrap;
         }
+        .tab-btn.active { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
 
-        .tab-btn.active {
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
-            color: white;
-            box-shadow: 0 4px 10px rgba(37,99,235,0.3);
-        }
-
-        .dashboard {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
+        .dashboard { display: flex; flex-direction: column; gap: 20px; }
         @media (min-width: 768px) {
-            .dashboard {
-                display: grid;
-                grid-template-columns: 1fr 1.2fr;
-                gap: 24px;
-            }
-            .reminder-section {
-                order: 1;
-            }
-            .form-section {
-                order: 2;
-            }
-            .calendar-section {
-                order: 0;
-                grid-column: 1 / 2;
-                grid-row: span 2;
-            }
+            .dashboard { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+            .calendar-section { order: 0; grid-column: 1 / 2; grid-row: span 2; }
+            .reminder-section { order: 1; }
+            .form-section { order: 2; }
         }
 
-        .card {
-            background: white;
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
+        .card { background: var(--bg-card); border-radius: 24px; padding: 20px; box-shadow: 0 8px 20px var(--shadow); }
+        .card h3 { margin-bottom: 16px; font-size: 16px; }
 
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .month-year { font-size: 16px; font-weight: 700; }
+        .nav-btn { background: var(--bg-soft); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; color: var(--text-primary); }
 
-        .month-year {
-            font-size: 18px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .nav-btn {
-            background: #f1f5f9;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7,1fr);
-            text-align: center;
-            font-weight: 600;
-            color: #3b82f6;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .calendar-days {
-            display: grid;
-            grid-template-columns: repeat(7,1fr);
-            gap: 4px;
-        }
+        .weekdays { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-weight: 600; color: var(--accent); font-size: 11px; margin-bottom: 8px; }
+        .calendar-days { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
 
         .day-cell {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 13px;
-            background: #f8fafc;
-            position: relative;
+            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; font-weight: 500; font-size: 13px; background: var(--bg-soft); position: relative; color: var(--text-primary);
         }
+        .day-cell.selected { background: var(--accent); color: white; }
+        .day-cell.today { border: 3px solid var(--accent); font-weight: bold; }
+        .day-cell.other-month { opacity: 0.3; }
+        .reminder-dot { width: 5px; height: 5px; background: #ef4444; border-radius: 50%; margin-top: 2px; }
+        .day-cell.selected .reminder-dot { background: white; }
 
-        .day-cell.selected {
-            background: #3b82f6;
-            color: white;
+        .search-box { position: relative; margin-bottom: 12px; }
+        .search-box input { width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border); border-radius: 40px; font-size: 13px; background: var(--bg-soft); color: var(--text-primary); }
+        .search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+
+        .filter-row { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .filter-chip { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-secondary); white-space: nowrap; }
+        .filter-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        input, textarea, select {
+            width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 16px; font-size: 14px; transition: 0.2s; background: var(--bg-soft); color: var(--text-primary);
         }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
 
-        .day-cell.today {
-            border: 3px solid #3b82f6;
-            background: #eff6ff;
-            font-weight: bold;
-        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); }
 
-        .day-number {
-            font-size: 14px;
-            font-weight: 600;
-        }
+        .btn-primary { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; border: none; padding: 14px 16px; border-radius: 40px; font-weight: 600; font-size: 15px; cursor: pointer; width: 100%; transition: transform 0.2s; }
+        .btn-primary:active { transform: scale(0.98); }
 
-        .reminder-dot {
-            width: 5px;
-            height: 5px;
-            background: #ef4444;
-            border-radius: 50%;
-            margin-top: 2px;
-        }
-
-        .day-cell.selected .reminder-dot {
-            background: white;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
-        input::placeholder, textarea::placeholder {
-            color: #94a3b8;
-            font-size: 13px;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px #3b82f620;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            width: 100%;
+        .btn-test-notif {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; border: none; padding: 10px 16px; border-radius: 40px; font-weight: 600; font-size: 13px; cursor: pointer; width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
         .reminder-item {
-            background: #f8fafc;
-            border-radius: 20px;
-            padding: 14px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
+            background: var(--bg-soft); border-radius: 18px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-left: 4px solid var(--accent); transition: all 0.2s;
         }
+        .reminder-item.completed { opacity: 0.5; }
+        .reminder-item.completed .reminder-info h4 { text-decoration: line-through; }
+        .reminder-item.priority-high { border-left-color: #ef4444; }
+        .reminder-item.priority-medium { border-left-color: #f59e0b; }
+        .reminder-item.priority-low { border-left-color: #10b981; }
 
-        .reminder-info {
-            flex: 1;
+        .reminder-info { flex: 1; min-width: 0; }
+        .reminder-info h4 { font-size: 15px; margin-bottom: 6px; word-break: break-word; }
+        .reminder-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        
+        .category-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; font-weight: 600; }
+        .cat-kerja { background: #3b82f6; } .cat-peribadi { background: #8b5cf6; } .cat-kesihatan { background: #10b981; } .cat-kewangan { background: #f59e0b; } .cat-lain { background: #6b7280; }
+        .priority-badge { font-size: 10px; font-weight: 700; }
+
+        .reminder-actions { display: flex; flex-direction: column; gap: 5px; }
+        .action-btn { border: none; padding: 6px 10px; border-radius: 20px; font-weight: 600; font-size: 11px; cursor: pointer; white-space: nowrap; }
+        .btn-complete { background: #d1fae5; color: #059669; }
+        .btn-edit { background: #e0e7ff; color: #2563eb; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
+
+        .fab {
+            position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; border: none; font-size: 28px; cursor: pointer; box-shadow: 0 8px 24px rgba(59,130,246,0.4); z-index: 100; transition: transform 0.2s;
         }
+        .fab:active { transform: scale(0.9); }
 
-        .reminder-info h4 {
-            font-size: 16px;
-            margin-bottom: 6px;
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+        .modal.show { display: flex; }
+        .modal-content { background: var(--bg-card); border-radius: 28px; padding: 24px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
+        .modal-content h3 { margin-bottom: 16px; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+        .modal-buttons button { flex: 1; padding: 12px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; }
+        .btn-cancel { background: var(--bg-soft); color: var(--text-primary); }
+        .btn-save { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; }
+
+        .reminder-popup {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a, #3b82f6); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; animation: pulse 2s infinite;
         }
+        .reminder-popup.show { display: flex; }
+        .reminder-popup .bell { font-size: 80px; animation: ring 0.5s infinite; }
+        .reminder-popup h2 { font-size: 28px; margin: 20px 0 10px; }
+        .reminder-popup p { font-size: 16px; opacity: 0.9; margin-bottom: 30px; }
+        .reminder-popup button { padding: 14px 30px; border-radius: 40px; border: none; background: white; color: #1e3a8a; font-weight: 700; font-size: 15px; cursor: pointer; margin: 6px; }
 
-        .reminder-meta {
-            font-size: 11px;
-            color: #475569;
-            margin-bottom: 4px;
-        }
+        @keyframes ring { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-20deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.9; } }
 
-        .reminder-notes {
-            font-size: 11px;
-            color: #6b7280;
-            background: #f1f5f9;
-            padding: 4px 8px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-top: 4px;
-        }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9998; display: flex; flex-direction: column; gap: 10px; max-width: 320px; pointer-events: none; }
+        .toast { background: var(--bg-card); padding: 14px 18px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border-left: 4px solid var(--accent); animation: slideIn 0.3s ease; display: flex; gap: 10px; align-items: flex-start; pointer-events: auto; }
+        .toast .icon { font-size: 24px; }
+        .toast .content { flex: 1; }
+        .toast .title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+        .toast .message { font-size: 12px; color: var(--text-secondary); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .delete-btn, .edit-btn {
-            border: none;
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 6px;
-        }
+        .empty-state { text-align: center; padding: 30px 20px; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
 
-        .delete-btn {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .edit-btn {
-            background: #e0e7ff;
-            color: #2563eb;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 28px;
-            padding: 24px;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 16px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 10px;
-            border-radius: 40px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .modal-buttons button:first-child {
-            background: #e2e8f0;
-            color: #334155;
-        }
-
-        .modal-buttons button:last-child {
-            background: #3b82f6;
-            color: white;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 12px;
-            }
-            .card {
-                padding: 16px;
-            }
+        @media (max-width: 640px) {
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .logo h1 { font-size: 18px; }
+            .form-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -379,13 +238,23 @@
 <div class="container">
     <div class="header">
         <div class="logo">
-            <img src="https://arleta.site/interactivelink/4045/MySchedule.png" alt="MySchedule Logo" onerror="this.style.display='none'">
+            <img src="https://arleta.site/interactivelink/4045/MySchedule.png" alt="Logo" onerror="this.style.display='none'">
             <div>
                 <h1>📅 MySchedule</h1>
-                <p>Premium Reminder · Cross-Device Sync</p>
+                <p>Premium Reminder · PWA Ready</p>
             </div>
         </div>
-        <div class="sync-status" id="syncStatus">☁️ Connecting...</div>
+        <div class="header-actions">
+            <button class="icon-btn" id="themeBtn" title="Toggle Dark Mode">🌙</button>
+            <div class="sync-status" id="syncStatus">☁️ Connecting...</div>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Jumlah</div></div>
+        <div class="stat-card"><div class="num" id="statPending" style="color:#f59e0b">0</div><div class="label">Belum</div></div>
+        <div class="stat-card"><div class="num" id="statDone" style="color:#10b981">0</div><div class="label">Selesai</div></div>
+        <div class="stat-card"><div class="num" id="statOverdue" style="color:#ef4444">0</div><div class="label">Lepas</div></div>
     </div>
 
     <div class="tabs">
@@ -403,396 +272,611 @@
                 <button class="nav-btn" id="nextMonthBtn">→</button>
             </div>
             <div class="weekdays">
-                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                <span>Ahd</span><span>Isn</span><span>Sel</span><span>Rab</span><span>Kha</span><span>Jum</span><span>Sab</span>
             </div>
             <div class="calendar-days" id="calendarDays"></div>
         </div>
 
         <div class="card reminder-section">
-            <h3 style="margin-bottom: 16px;">📋 Schedule List</h3>
+            <h3>📋 Senarai Reminder</h3>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Cari reminder...">
+            </div>
+            <div class="filter-row" id="filterRow">
+                <div class="filter-chip active" data-cat="all">Semua</div>
+                <div class="filter-chip" data-cat="kerja">💼 Kerja</div>
+                <div class="filter-chip" data-cat="peribadi">👤 Peribadi</div>
+                <div class="filter-chip" data-cat="kesihatan">💚 Kesihatan</div>
+                <div class="filter-chip" data-cat="kewangan">💰 Kewangan</div>
+                <div class="filter-chip" data-cat="lain">📌 Lain</div>
+            </div>
             <div id="reminderList">Loading...</div>
         </div>
 
         <div class="card form-section">
-            <h3 style="margin-bottom: 16px;">✨ Add / Edit Reminder</h3>
-            <input type="text" id="reminderTitle" placeholder="Reminder title *" style="margin-bottom: 12px;">
-            <input type="date" id="reminderDate" placeholder="Select date" style="margin-bottom: 12px;">
-            <input type="time" id="reminderTime" placeholder="HH:MM (24h format)" style="margin-bottom: 12px;">
-            <textarea id="reminderNotes" rows="2" placeholder="Additional notes (e.g., location, link)" style="margin-bottom: 16px;"></textarea>
-            <button class="btn-primary" id="saveBtn">💾 Save Reminder</button>
+            <h3>✨ Tambah / Edit Reminder</h3>
+            
+            <!-- BUTANG TEST NOTIFICATION (PENTING UNTUK PWA) -->
+            <button class="btn-test-notif" id="testNotifBtn">
+                🔔 Test Notification (Klik Sini Dulu!)
+            </button>
+
+            <div class="form-group">
+                <label>Tajuk *</label>
+                <input type="text" id="reminderTitle" placeholder="Contoh: Meeting dengan client">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tarikh *</label>
+                    <input type="date" id="reminderDate">
+                </div>
+                <div class="form-group">
+                    <label>Masa</label>
+                    <input type="time" id="reminderTime">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select id="reminderCategory">
+                        <option value="kerja">💼 Kerja</option>
+                        <option value="peribadi">👤 Peribadi</option>
+                        <option value="kesihatan">💚 Kesihatan</option>
+                        <option value="kewangan">💰 Kewangan</option>
+                        <option value="lain">📌 Lain-lain</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prioriti</label>
+                    <select id="reminderPriority">
+                        <option value="medium">🟡 Sederhana</option>
+                        <option value="high">🔴 Tinggi</option>
+                        <option value="low">🟢 Rendah</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Nota Tambahan</label>
+                <textarea id="reminderNotes" rows="2" placeholder="Lokasi, link, dll..."></textarea>
+            </div>
+            <button class="btn-primary" id="saveBtn">💾 Simpan Reminder</button>
             <input type="hidden" id="editId" value="">
         </div>
     </div>
 </div>
 
+<button class="fab" id="fabBtn" title="Tambah Cepat">+</button>
+
+<!-- Edit Modal -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <h3>✏️ Edit Reminder</h3>
-        <input type="text" id="modalTitle" placeholder="Title" style="margin-bottom: 12px;">
-        <input type="date" id="modalDate" style="margin-bottom: 12px;">
-        <input type="time" id="modalTime" placeholder="HH:MM" style="margin-bottom: 12px;">
-        <textarea id="modalNotes" rows="2" placeholder="Notes"></textarea>
+        <div class="form-group">
+            <label>Tajuk</label>
+            <input type="text" id="modalTitle">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Tarikh</label>
+                <input type="date" id="modalDate">
+            </div>
+            <div class="form-group">
+                <label>Masa</label>
+                <input type="time" id="modalTime">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="modalCategory">
+                    <option value="kerja">💼 Kerja</option>
+                    <option value="peribadi">👤 Peribadi</option>
+                    <option value="kesihatan">💚 Kesihatan</option>
+                    <option value="kewangan">💰 Kewangan</option>
+                    <option value="lain">📌 Lain-lain</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Prioriti</label>
+                <select id="modalPriority">
+                    <option value="medium">🟡 Sederhana</option>
+                    <option value="high">🔴 Tinggi</option>
+                    <option value="low">🟢 Rendah</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Nota</label>
+            <textarea id="modalNotes" rows="2"></textarea>
+        </div>
         <div class="modal-buttons">
-            <button id="modalCancelBtn">Cancel</button>
-            <button id="modalSaveBtn">Save</button>
+            <button class="btn-cancel" id="modalCancelBtn">Batal</button>
+            <button class="btn-save" id="modalSaveBtn">Simpan</button>
         </div>
     </div>
 </div>
 
+<!-- Full-screen Reminder Popup -->
+<div id="reminderPopup" class="reminder-popup">
+    <div class="bell">🔔</div>
+    <h2 id="popupTitle">Reminder!</h2>
+    <p id="popupMessage">Anda ada reminder</p>
+    <div>
+        <button id="popupComplete">✅ Selesai</button>
+        <button id="popupDismiss">✖ Tutup</button>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
-    // ========================
-    // 1. FIREBASE CONFIG
-    // ========================
-    const firebaseConfig = {
-        apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
-        authDomain: "myschedule2050.firebaseapp.com",
-        projectId: "myschedule2050",
-        storageBucket: "myschedule2050.firebasestorage.app",
-        messagingSenderId: "483213696345",
-        appId: "1:483213696345:web:8f6bc228ddfafb5b98c048"
-    };
+// ========================
+// 1. FIREBASE CONFIG
+// ========================
+const firebaseConfig = {
+    apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
+    authDomain: "myschedule2050.firebaseapp.com",
+    projectId: "myschedule2050",
+    storageBucket: "myschedule2050.firebasestorage.app",
+    messagingSenderId: "483213696345",
+    appId: "1:483213696345:web:8f6bc228ddfafb5b98c048"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+// ========================
+// 2. APP STATE
+// ========================
+function getTodayStr() {
+    const t = new Date();
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+function getCurrentTimeStr() {
+    const t = new Date();
+    return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+}
 
-    // ========================
-    // 2. PWA MANIFEST (dijana terus dari JS)
-    // ========================
-    (function registerPWA() {
-        const manifest = {
-            name: "MySchedule",
-            short_name: "MySchedule",
-            description: "Premium Reminder with Cross-Device Sync",
-            start_url: "/",
-            display: "standalone",
-            theme_color: "#1e3a8a",
-            background_color: "#f0f4ff",
-            orientation: "portrait",
-            icons: [
-                {
-                    src: "https://arleta.site/interactivelink/4045/MySchedule.png",
-                    sizes: "512x512",
-                    type: "image/png",
-                    purpose: "any maskable"
-                },
-                {
-                    src: "https://arleta.site/interactivelink/4045/MySchedule.png",
-                    sizes: "192x192",
-                    type: "image/png",
-                    purpose: "any maskable"
-                }
-            ]
-        };
-        
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(manifestBlob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestURL;
-        document.head.appendChild(link);
-    })();
+let currentViewDate = new Date();
+let selectedDate = getTodayStr();
+let currentPeriod = 'daily';
+let reminders = [];
+let currentEditId = null;
+let currentFilter = 'all';
+let searchQuery = '';
+let currentPopupReminder = null;
 
-    // ========================
-    // 3. SERVICE WORKER (inline)
-    // ========================
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            const CACHE_NAME = 'myschedule-v1';
-            const urlsToCache = [
-                '/',
-                'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',
-                'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js'
-            ];
-            self.addEventListener('install', event => {
-                event.waitUntil(
-                    caches.open(CACHE_NAME)
-                        .then(cache => cache.addAll(urlsToCache))
-                );
-            });
-            self.addEventListener('fetch', event => {
-                event.respondWith(
-                    caches.match(event.request)
-                        .then(response => response || fetch(event.request))
-                );
-            });
-            self.addEventListener('activate', event => {
-                event.waitUntil(
-                    caches.keys().then(cacheNames => {
-                        return Promise.all(
-                            cacheNames.map(cache => {
-                                if (cache !== CACHE_NAME) return caches.delete(cache);
-                            })
-                        );
-                    })
-                );
-            });
-        `;
-        const blob = new Blob([swCode], {type: 'application/javascript'});
-        const swURL = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swURL)
-            .then(reg => console.log('SW registered:', reg))
-            .catch(err => console.log('SW failed:', err));
+const $ = id => document.getElementById(id);
+const calendarDaysDiv = $('calendarDays');
+const monthYearDisplay = $('monthYearDisplay');
+const reminderListDiv = $('reminderList');
+const syncStatus = $('syncStatus');
+const modal = $('editModal');
+const reminderPopup = $('reminderPopup');
+const toastContainer = $('toastContainer');
+
+// ========================
+// 3. PWA NOTIFICATION SYSTEM
+// ========================
+async function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        showToast("⚠️", "Tidak Disokong", "Browser ini tidak menyokong notification.");
+        return false;
     }
-
-    // ========================
-    // 4. APP STATE & LOGIC
-    // ========================
-    function getTodayStr() {
-        const today = new Date();
-        return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    if (Notification.permission === "granted") {
+        showToast("✅", "Sudah Aktif", "Notification sudah dibenarkan untuk PWA ini.");
+        return true;
     }
-
-    let currentViewDate = new Date();
-    let selectedDate = getTodayStr();
-    let currentPeriod = 'daily';
-    let reminders = [];
-    let currentEditId = null;
-
-    const calendarDaysDiv = document.getElementById('calendarDays');
-    const monthYearDisplay = document.getElementById('monthYearDisplay');
-    const reminderListDiv = document.getElementById('reminderList');
-    const reminderTitle = document.getElementById('reminderTitle');
-    const reminderDate = document.getElementById('reminderDate');
-    const reminderTime = document.getElementById('reminderTime');
-    const reminderNotes = document.getElementById('reminderNotes');
-    const saveBtn = document.getElementById('saveBtn');
-    const editId = document.getElementById('editId');
-    const syncStatus = document.getElementById('syncStatus');
-
-    const modal = document.getElementById('editModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDate = document.getElementById('modalDate');
-    const modalTime = document.getElementById('modalTime');
-    const modalNotes = document.getElementById('modalNotes');
-    const modalCancelBtn = document.getElementById('modalCancelBtn');
-    const modalSaveBtn = document.getElementById('modalSaveBtn');
-
-    async function loadReminders() {
-        try {
-            const snapshot = await db.collection('reminders').orderBy('date').get();
-            reminders = [];
-            snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
-            renderReminderList();
-            renderCalendar();
-            syncStatus.innerText = "✅ Sync Live · Cloud";
-            syncStatus.style.background = "#10b98120";
-            syncStatus.style.color = "#059669";
-        } catch (error) {
-            console.error(error);
-            syncStatus.innerText = "⚠️ Firebase Error";
-            syncStatus.style.background = "#fee2e2";
-            syncStatus.style.color = "#dc2626";
-        }
+    if (Notification.permission === "denied") {
+        showToast("⚠️", "Disekat", "Sila pergi ke Settings > Site Settings > Notifications untuk benarkan.");
+        return false;
     }
-
-    saveBtn.onclick = async () => {
-        const title = reminderTitle.value.trim();
-        const date = reminderDate.value;
-        const time = reminderTime.value || "00:00";
-        const notes = reminderNotes.value.trim();
-        if (!title || !date) return alert("Title and date are required!");
-        
-        const data = { title, date, time, notes };
-        try {
-            if (editId.value) {
-                await db.collection('reminders').doc(editId.value).update(data);
-                editId.value = "";
-            } else {
-                await db.collection('reminders').add(data);
-            }
-            reminderTitle.value = "";
-            reminderDate.value = "";
-            reminderTime.value = "";
-            reminderNotes.value = "";
-            await loadReminders();
-        } catch (error) {
-            alert("Failed to save: " + error.message);
-        }
-    };
-
-    async function deleteReminder(id) {
-        if (confirm("Delete this reminder?")) {
-            await db.collection('reminders').doc(id).delete();
-            await loadReminders();
-        }
-    }
-
-    function openEditModal(rem) {
-        if (!rem || !rem.id) return;
-        currentEditId = rem.id;
-        modalTitle.value = rem.title || "";
-        modalDate.value = rem.date || "";
-        modalTime.value = rem.time || "00:00";
-        modalNotes.value = rem.notes || "";
-        modal.style.display = "flex";
-    }
-
-    modalSaveBtn.onclick = async () => {
-        if (!currentEditId) {
-            modal.style.display = "none";
-            return;
-        }
-        const data = {
-            title: modalTitle.value.trim(),
-            date: modalDate.value,
-            time: modalTime.value || "00:00",
-            notes: modalNotes.value.trim()
-        };
-        if (!data.title || !data.date) {
-            alert("Title and date are required!");
-            return;
-        }
-        try {
-            await db.collection('reminders').doc(currentEditId).update(data);
-            modal.style.display = "none";
-            await loadReminders();
-        } catch (error) {
-            alert("Failed to update: " + error.message);
-        }
-    };
-
-    modalCancelBtn.onclick = () => {
-        modal.style.display = "none";
-        currentEditId = null;
-    };
     
-    window.onclick = (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-            currentEditId = null;
-        }
-    };
-
-    function filterReminders() {
-        const refDate = new Date(selectedDate);
-        const year = refDate.getFullYear();
-        const month = refDate.getMonth();
-        const weekStart = new Date(refDate);
-        weekStart.setDate(refDate.getDate() - refDate.getDay());
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        
-        return reminders.filter(r => {
-            const rDate = new Date(r.date);
-            if (currentPeriod === 'daily') return r.date === selectedDate;
-            if (currentPeriod === 'weekly') return rDate >= weekStart && rDate <= weekEnd;
-            if (currentPeriod === 'monthly') return rDate.getMonth() === month && rDate.getFullYear() === year;
-            if (currentPeriod === 'yearly') return rDate.getFullYear() === year;
-            return false;
+    // PENTING: Mesti dipanggil selepas user gesture (klik butang)
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+        showToast("✅", "Berjaya!", "Notification PWA sudah diaktifkan.");
+        // Test notification segera untuk confirm
+        new Notification("🎉 MySchedule PWA", { 
+            body: "Test berjaya! Anda akan terima reminder tepat pada masanya.", 
+            icon: "https://arleta.site/interactivelink/4045/MySchedule.png" 
         });
+        return true;
     }
+    return false;
+}
 
-    function renderReminderList() {
-        const filtered = filterReminders();
-        if (!filtered.length) {
-            reminderListDiv.innerHTML = '<div style="text-align:center;color:gray;padding:20px;">✨ No schedules. Add new!</div>';
-            return;
-        }
-        reminderListDiv.innerHTML = filtered.map(rem => `
-            <div class="reminder-item" data-id="${rem.id}">
-                <div class="reminder-info">
-                    <h4>📌 ${escapeHtml(rem.title)}</h4>
-                    <div class="reminder-meta">📅 ${rem.date} ⏰ ${rem.time}</div>
-                    ${rem.notes ? `<div class="reminder-notes">📝 ${escapeHtml(rem.notes)}</div>` : ''}
-                </div>
-                <div>
-                    <button class="delete-btn" data-id="${rem.id}">Delete</button>
-                    <button class="edit-btn" data-id="${rem.id}">Edit</button>
-                </div>
-            </div>
-        `).join('');
+$('testNotifBtn').onclick = async () => {
+    const success = await requestNotificationPermission();
+    if (success) {
+        showToast("🔔", "Test Berjaya", "Jika anda nampak notification di atas, PWA anda berfungsi 100%!");
+    }
+};
 
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = btn.getAttribute('data-id');
-                deleteReminder(id);
+function triggerWebNotification(title, body) {
+    if (Notification.permission === "granted") {
+        try {
+            new Notification("📅 " + title, {
+                body: body,
+                icon: "https://arleta.site/interactivelink/4045/MySchedule.png",
+                badge: "https://arleta.site/interactivelink/4045/MySchedule.png",
+                tag: "reminder-" + Date.now(),
+                requireInteraction: true,
+                vibrate: [200, 100, 200]
             });
-        });
-        
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = btn.getAttribute('data-id');
-                const reminder = reminders.find(r => r.id === id);
-                if (reminder) openEditModal(reminder);
-            });
-        });
+        } catch(e) { console.error(e); }
     }
+}
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
-    }
+function showToast(icon, title, message, duration = 5000) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<div class="icon">${icon}</div><div class="content"><div class="title">${title}</div><div class="message">${message}</div></div>`;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
 
-    function getDatesWithReminders() {
-        const dateMap = {};
-        reminders.forEach(rem => { dateMap[rem.date] = true; });
-        return dateMap;
-    }
+function playAlertSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playBeep = (freq, startTime, duration) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = freq; osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+            osc.start(startTime); osc.stop(startTime + duration);
+        };
+        const now = ctx.currentTime;
+        playBeep(880, now, 0.2);
+        playBeep(880, now + 0.3, 0.2);
+        playBeep(1175, now + 0.6, 0.4);
+    } catch(e) {}
+}
 
-    function renderCalendar() {
-        const year = currentViewDate.getFullYear();
-        const month = currentViewDate.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const startWeekday = firstDay.getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
-        
-        let html = '';
-        for (let i = 0; i < startWeekday; i++) html += '<div></div>';
-        
-        const todayStr = getTodayStr();
-        const datesWithReminders = getDatesWithReminders();
-        
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            let classes = 'day-cell';
-            if (dateStr === selectedDate) classes += ' selected';
-            if (dateStr === todayStr) classes += ' today';
-            const hasReminder = datesWithReminders[dateStr];
-            
-            html += `<div class="${classes}" data-date="${dateStr}">
-                        <div class="day-number">${d}</div>
-                        ${hasReminder ? '<div class="reminder-dot"></div>' : '<div style="height:5px;"></div>'}
-                     </div>`;
-        }
-        calendarDaysDiv.innerHTML = html;
-        
-        document.querySelectorAll('.day-cell[data-date]').forEach(el => {
-            el.addEventListener('click', () => {
-                selectedDate = el.dataset.date;
-                reminderDate.value = selectedDate;
-                renderCalendar();
-                renderReminderList();
-            });
-        });
-    }
+function showReminderPopup(rem) {
+    currentPopupReminder = rem;
+    $('popupTitle').textContent = rem.title;
+    $('popupMessage').textContent = rem.notes || `Masa: ${rem.time}`;
+    reminderPopup.classList.add('show');
+    playAlertSound();
+}
 
-    document.getElementById('prevMonthBtn').onclick = () => {
-        currentViewDate.setMonth(currentViewDate.getMonth() - 1);
-        renderCalendar();
-    };
-    document.getElementById('nextMonthBtn').onclick = () => {
-        currentViewDate.setMonth(currentViewDate.getMonth() + 1);
-        renderCalendar();
-    };
-    
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentPeriod = btn.dataset.period;
-            renderReminderList();
-        });
+function checkReminders() {
+    const currentDateStr = getTodayStr();
+    const currentTimeStr = getCurrentTimeStr();
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    reminders.forEach(rem => {
+        if (rem.completed || rem.date !== currentDateStr || !rem.time) return;
+        
+        const [h, m] = rem.time.split(':').map(Number);
+        if ((h * 60 + m) !== nowMinutes) return;
+        
+        const notifiedKey = `notified_${rem.id}_${currentDateStr}_${rem.time}`;
+        if (localStorage.getItem(notifiedKey)) return;
+        
+        localStorage.setItem(notifiedKey, "true");
+        triggerWebNotification(rem.title, rem.notes || `Masa: ${rem.time}`);
+        showToast("🔔", rem.title, rem.notes || `${rem.date} • ${rem.time}`, 10000);
+        showReminderPopup(rem);
     });
+}
 
-    window.onload = async () => {
-        reminderDate.value = selectedDate;
+// ========================
+// 4. FIREBASE CRUD
+// ========================
+async function loadReminders() {
+    try {
+        const snapshot = await db.collection('reminders').orderBy('date').get();
+        reminders = [];
+        snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
+        renderAll();
+        syncStatus.innerText = "✅ Sync Live";
+        syncStatus.style.background = "#10b98120";
+        syncStatus.style.color = "#059669";
+    } catch (error) {
+        console.error(error);
+        syncStatus.innerText = "⚠️ Error";
+        syncStatus.style.background = "#fee2e2";
+        syncStatus.style.color = "#dc2626";
+    }
+}
+
+$('saveBtn').onclick = async () => {
+    const title = $('reminderTitle').value.trim();
+    const date = $('reminderDate').value;
+    const time = $('reminderTime').value || "00:00";
+    const category = $('reminderCategory').value;
+    const priority = $('reminderPriority').value;
+    const notes = $('reminderNotes').value.trim();
+    
+    if (!title || !date) {
+        showToast("⚠️", "Ralat", "Tajuk dan tarikh wajib diisi!");
+        return;
+    }
+    
+    const data = { title, date, time, category, priority, notes, completed: false, createdAt: new Date().toISOString() };
+    
+    try {
+        if ($('editId').value) {
+            await db.collection('reminders').doc($('editId').value).update(data);
+            showToast("✅", "Dikemaskini", "Reminder berjaya dikemaskini");
+        } else {
+            await db.collection('reminders').add(data);
+            showToast("✅", "Ditambah", "Reminder baru berjaya ditambah");
+        }
+        clearForm();
         await loadReminders();
-        if (Notification.permission === "default") Notification.requestPermission();
-        db.collection('reminders').onSnapshot(() => loadReminders());
+    } catch (error) {
+        showToast("❌", "Gagal", error.message);
+    }
+};
+
+function clearForm() {
+    $('reminderTitle').value = "";
+    $('reminderDate').value = "";
+    $('reminderTime').value = "";
+    $('reminderNotes').value = "";
+    $('reminderCategory').value = "kerja";
+    $('reminderPriority').value = "medium";
+    $('editId').value = "";
+}
+
+async function deleteReminder(id) {
+    if (!confirm("Padam reminder ini?")) return;
+    await db.collection('reminders').doc(id).delete();
+    showToast("🗑️", "Dipadam", "Reminder berjaya dipadam");
+    await loadReminders();
+}
+
+async function toggleComplete(id) {
+    const rem = reminders.find(r => r.id === id);
+    if (!rem) return;
+    await db.collection('reminders').doc(id).update({ completed: !rem.completed });
+    if (!rem.completed) showToast("✅", "Syabas!", "Reminder ditandakan selesai");
+    await loadReminders();
+}
+
+function openEditModal(rem) {
+    if (!rem) return;
+    currentEditId = rem.id;
+    $('modalTitle').value = rem.title || "";
+    $('modalDate').value = rem.date || "";
+    $('modalTime').value = rem.time || "";
+    $('modalCategory').value = rem.category || "kerja";
+    $('modalPriority').value = rem.priority || "medium";
+    $('modalNotes').value = rem.notes || "";
+    modal.classList.add('show');
+}
+
+$('modalSaveBtn').onclick = async () => {
+    if (!currentEditId) return;
+    const data = {
+        title: $('modalTitle').value.trim(),
+        date: $('modalDate').value,
+        time: $('modalTime').value || "00:00",
+        category: $('modalCategory').value,
+        priority: $('modalPriority').value,
+        notes: $('modalNotes').value.trim()
     };
+    if (!data.title || !data.date) {
+        showToast("⚠️", "Ralat", "Tajuk dan tarikh wajib diisi!");
+        return;
+    }
+    try {
+        await db.collection('reminders').doc(currentEditId).update(data);
+        modal.classList.remove('show');
+        showToast("✅", "Dikemaskini", "Reminder berjaya dikemaskini");
+        await loadReminders();
+    } catch (error) {
+        showToast("❌", "Gagal", error.message);
+    }
+};
+$('modalCancelBtn').onclick = () => modal.classList.remove('show');
+
+// ========================
+// 5. UI RENDERING
+// ========================
+function getFilteredReminders() {
+    return reminders.filter(r => {
+        const rDate = new Date(r.date + "T00:00:00");
+        const viewYear = currentViewDate.getFullYear();
+        const viewMonth = currentViewDate.getMonth();
+        
+        let periodMatch = false;
+        if (currentPeriod === 'daily') periodMatch = r.date === selectedDate;
+        else if (currentPeriod === 'weekly') {
+            const sel = new Date(selectedDate + "T00:00:00");
+            const start = new Date(sel); start.setDate(sel.getDate() - sel.getDay());
+            const end = new Date(start); end.setDate(start.getDate() + 6);
+            periodMatch = rDate >= start && rDate <= end;
+        }
+        else if (currentPeriod === 'monthly') periodMatch = rDate.getFullYear() === viewYear && rDate.getMonth() === viewMonth;
+        else if (currentPeriod === 'yearly') periodMatch = rDate.getFullYear() === viewYear;
+        
+        const catMatch = currentFilter === 'all' || r.category === currentFilter;
+        const searchMatch = !searchQuery || r.title.toLowerCase().includes(searchQuery.toLowerCase()) || (r.notes && r.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        return periodMatch && catMatch && searchMatch;
+    }).sort((a,b) => {
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+        if (a.date === b.date) return (a.time || '').localeCompare(b.time || '');
+        return a.date.localeCompare(b.date);
+    });
+}
+
+function renderCalendar() {
+    calendarDaysDiv.innerHTML = '';
+    const year = currentViewDate.getFullYear();
+    const month = currentViewDate.getMonth();
+    const monthNames = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+    monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevMonthDays = new Date(year, month, 0).getDate();
+    
+    for (let i = firstDay - 1; i >= 0; i--) {
+        calendarDaysDiv.innerHTML += `<div class="day-cell other-month">${prevMonthDays - i}</div>`;
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const hasReminder = reminders.some(r => r.date === dateStr && !r.completed);
+        const isToday = dateStr === getTodayStr();
+        const isSelected = dateStr === selectedDate;
+        
+        let cls = 'day-cell';
+        if (isToday) cls += ' today';
+        if (isSelected) cls += ' selected';
+        
+        calendarDaysDiv.innerHTML += `<div class="${cls}" data-date="${dateStr}"><span>${day}</span>${hasReminder ? '<div class="reminder-dot"></div>' : ''}</div>`;
+    }
+    
+    document.querySelectorAll('.day-cell[data-date]').forEach(cell => {
+        cell.onclick = () => {
+            selectedDate = cell.dataset.date;
+            currentPeriod = 'daily';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.tab-btn[data-period="daily"]').classList.add('active');
+            renderCalendar();
+            renderReminderList();
+        };
+    });
+}
+
+function renderReminderList() {
+    reminderListDiv.innerHTML = '';
+    const filtered = getFilteredReminders();
+    
+    if (filtered.length === 0) {
+        reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Tiada reminder untuk tempoh ini</p></div>`;
+        return;
+    }
+    
+    filtered.forEach(rem => {
+        const catLabels = { kerja: '💼 Kerja', peribadi: '👤 Peribadi', kesihatan: '💚 Kesihatan', kewangan: '💰 Kewangan', lain: '📌 Lain' };
+        const priorityLabels = { high: '🔴 TINGGI', medium: '🟡 SEDERHANA', low: '🟢 RENDAH' };
+        
+        const div = document.createElement('div');
+        div.className = `reminder-item priority-${rem.priority || 'medium'} ${rem.completed ? 'completed' : ''}`;
+        div.innerHTML = `
+            <div class="reminder-info">
+                <h4>${rem.completed ? '✅ ' : ''}${rem.title}</h4>
+                <div class="reminder-meta">
+                    <span>🕒 ${rem.time || '--:--'}</span>
+                    <span>📅 ${rem.date}</span>
+                    <span class="category-badge cat-${rem.category || 'lain'}">${catLabels[rem.category || 'lain']}</span>
+                    <span class="priority-badge">${priorityLabels[rem.priority || 'medium']}</span>
+                </div>
+                ${rem.notes ? `<div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">📝 ${rem.notes}</div>` : ''}
+            </div>
+            <div class="reminder-actions">
+                <button class="action-btn btn-complete" data-id="${rem.id}">${rem.completed ? '↩️' : '✅'}</button>
+                <button class="action-btn btn-edit" data-id="${rem.id}">✏️</button>
+                <button class="action-btn btn-delete" data-id="${rem.id}">🗑️</button>
+            </div>
+        `;
+        reminderListDiv.appendChild(div);
+    });
+    
+    reminderListDiv.querySelectorAll('.btn-complete').forEach(b => b.onclick = () => toggleComplete(b.dataset.id));
+    reminderListDiv.querySelectorAll('.btn-edit').forEach(b => b.onclick = () => openEditModal(reminders.find(r => r.id === b.dataset.id)));
+    reminderListDiv.querySelectorAll('.btn-delete').forEach(b => b.onclick = () => deleteReminder(b.dataset.id));
+}
+
+function renderStats() {
+    const today = getTodayStr();
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const total = reminders.length;
+    const done = reminders.filter(r => r.completed).length;
+    const overdue = reminders.filter(r => {
+        if (r.completed) return false;
+        if (r.date > today) return false;
+        if (r.date < today) return true;
+        if (!r.time) return false;
+        const [h, m] = r.time.split(':').map(Number);
+        return (h * 60 + m) < nowMin;
+    }).length;
+    
+    $('statTotal').textContent = total;
+    $('statPending').textContent = total - done;
+    $('statDone').textContent = done;
+    $('statOverdue').textContent = overdue;
+}
+
+function renderAll() {
+    renderCalendar();
+    renderReminderList();
+    renderStats();
+}
+
+// ========================
+// 6. EVENT LISTENERS
+// ========================
+$('prevMonthBtn').onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); renderCalendar(); };
+$('nextMonthBtn').onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); renderCalendar(); };
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPeriod = btn.dataset.period;
+        renderReminderList();
+    };
+});
+
+$('searchInput').oninput = (e) => { searchQuery = e.target.value; renderReminderList(); };
+document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.onclick = () => {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.dataset.cat;
+        renderReminderList();
+    };
+});
+
+$('themeBtn').onclick = () => {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    $('themeBtn').textContent = isDark ? '☀️' : '🌙';
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+};
+
+$('fabBtn').onclick = () => {
+    $('reminderDate').value = selectedDate;
+    $('reminderTitle').focus();
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+};
+
+$('popupComplete').onclick = () => {
+    if (currentPopupReminder) {
+        toggleComplete(currentPopupReminder.id);
+        reminderPopup.classList.remove('show');
+    }
+};
+$('popupDismiss').onclick = () => reminderPopup.classList.remove('show');
+
+// ========================
+// 7. INITIALIZATION
+// ========================
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+    $('themeBtn').textContent = '☀️';
+}
+$('reminderDate').value = getTodayStr();
+
+// Check reminders every 15 seconds
+setInterval(checkReminders, 15000);
+setTimeout(checkReminders, 2000);
+
+loadReminders();
 </script>
 </body>
 </html>
