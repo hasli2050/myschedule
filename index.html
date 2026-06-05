@@ -4,8 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>MySchedule | Premium Reminder</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="apple-touch-icon" href="https://arleta.site/interactivelink/4045/MySchedule.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MySchedule">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="description" content="Premium Reminder with Cross-Device Sync">
+    
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -39,6 +50,18 @@
             gap: 12px;
         }
 
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+        }
+        
         .logo h1 {
             font-size: 24px;
             background: linear-gradient(135deg, #1e3a8a, #3b82f6);
@@ -356,8 +379,11 @@
 <div class="container">
     <div class="header">
         <div class="logo">
-            <h1>📅 MySchedule</h1>
-            <p>Premium Reminder · Cross-Device Sync</p>
+            <img src="https://arleta.site/interactivelink/4045/MySchedule.png" alt="MySchedule Logo" onerror="this.style.display='none'">
+            <div>
+                <h1>📅 MySchedule</h1>
+                <p>Premium Reminder · Cross-Device Sync</p>
+            </div>
         </div>
         <div class="sync-status" id="syncStatus">☁️ Connecting...</div>
     </div>
@@ -414,6 +440,9 @@
 </div>
 
 <script>
+    // ========================
+    // 1. FIREBASE CONFIG
+    // ========================
     const firebaseConfig = {
         apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
         authDomain: "myschedule2050.firebaseapp.com",
@@ -426,7 +455,88 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Helper to get consistent date string
+    // ========================
+    // 2. PWA MANIFEST (dijana terus dari JS)
+    // ========================
+    (function registerPWA() {
+        const manifest = {
+            name: "MySchedule",
+            short_name: "MySchedule",
+            description: "Premium Reminder with Cross-Device Sync",
+            start_url: "/",
+            display: "standalone",
+            theme_color: "#1e3a8a",
+            background_color: "#f0f4ff",
+            orientation: "portrait",
+            icons: [
+                {
+                    src: "https://arleta.site/interactivelink/4045/MySchedule.png",
+                    sizes: "512x512",
+                    type: "image/png",
+                    purpose: "any maskable"
+                },
+                {
+                    src: "https://arleta.site/interactivelink/4045/MySchedule.png",
+                    sizes: "192x192",
+                    type: "image/png",
+                    purpose: "any maskable"
+                }
+            ]
+        };
+        
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+    })();
+
+    // ========================
+    // 3. SERVICE WORKER (inline)
+    // ========================
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            const CACHE_NAME = 'myschedule-v1';
+            const urlsToCache = [
+                '/',
+                'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',
+                'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js'
+            ];
+            self.addEventListener('install', event => {
+                event.waitUntil(
+                    caches.open(CACHE_NAME)
+                        .then(cache => cache.addAll(urlsToCache))
+                );
+            });
+            self.addEventListener('fetch', event => {
+                event.respondWith(
+                    caches.match(event.request)
+                        .then(response => response || fetch(event.request))
+                );
+            });
+            self.addEventListener('activate', event => {
+                event.waitUntil(
+                    caches.keys().then(cacheNames => {
+                        return Promise.all(
+                            cacheNames.map(cache => {
+                                if (cache !== CACHE_NAME) return caches.delete(cache);
+                            })
+                        );
+                    })
+                );
+            });
+        `;
+        const blob = new Blob([swCode], {type: 'application/javascript'});
+        const swURL = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swURL)
+            .then(reg => console.log('SW registered:', reg))
+            .catch(err => console.log('SW failed:', err));
+    }
+
+    // ========================
+    // 4. APP STATE & LOGIC
+    // ========================
     function getTodayStr() {
         const today = new Date();
         return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
@@ -592,7 +702,6 @@
             </div>
         `).join('');
 
-        // Attach event listeners dynamically
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = btn.getAttribute('data-id');
@@ -616,9 +725,7 @@
 
     function getDatesWithReminders() {
         const dateMap = {};
-        reminders.forEach(rem => {
-            dateMap[rem.date] = true;
-        });
+        reminders.forEach(rem => { dateMap[rem.date] = true; });
         return dateMap;
     }
 
@@ -643,7 +750,6 @@
             let classes = 'day-cell';
             if (dateStr === selectedDate) classes += ' selected';
             if (dateStr === todayStr) classes += ' today';
-            
             const hasReminder = datesWithReminders[dateStr];
             
             html += `<div class="${classes}" data-date="${dateStr}">
