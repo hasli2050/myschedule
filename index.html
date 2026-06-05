@@ -21,13 +21,11 @@
             padding: 20px;
         }
 
-        /* Container premium */
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Header */
         .header {
             background: rgba(255,255,255,0.9);
             backdrop-filter: blur(10px);
@@ -67,7 +65,6 @@
             font-weight: 500;
         }
 
-        /* Tab Styles Premium */
         .tabs {
             display: flex;
             gap: 12px;
@@ -98,28 +95,20 @@
             box-shadow: 0 6px 14px rgba(37,99,235,0.3);
         }
 
-        /* 2 Column Layout */
         .dashboard {
             display: grid;
             grid-template-columns: 1fr 1.5fr;
             gap: 24px;
         }
 
-        /* Card Premium */
         .card {
             background: white;
             border-radius: 28px;
             padding: 24px;
             box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
             border: 1px solid rgba(255,255,255,0.3);
-            transition: transform 0.2s;
         }
 
-        .calendar-card {
-            background: linear-gradient(145deg, #ffffff, #fafcff);
-        }
-
-        /* Calendar styling */
         .calendar-header {
             display: flex;
             justify-content: space-between;
@@ -141,7 +130,6 @@
             border-radius: 50%;
             font-size: 20px;
             cursor: pointer;
-            transition: 0.2s;
         }
 
         .weekdays {
@@ -167,14 +155,12 @@
             border-radius: 16px;
             cursor: pointer;
             font-weight: 500;
-            transition: 0.1s;
             background: #f8fafc;
         }
 
         .day-cell.selected {
             background: #3b82f6;
             color: white;
-            box-shadow: 0 4px 10px #3b82f650;
         }
 
         .day-cell.today {
@@ -182,7 +168,6 @@
             background: white;
         }
 
-        /* Form */
         .form-group {
             margin-bottom: 20px;
         }
@@ -200,7 +185,6 @@
             border: 1.5px solid #e2e8f0;
             border-radius: 20px;
             font-size: 15px;
-            transition: 0.2s;
         }
 
         input:focus, textarea:focus {
@@ -219,7 +203,6 @@
             font-size: 16px;
             cursor: pointer;
             width: 100%;
-            transition: 0.2s;
         }
 
         .reminder-item {
@@ -230,7 +213,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: 0.2s;
         }
 
         .reminder-info h4 {
@@ -253,6 +235,17 @@
             cursor: pointer;
         }
 
+        .edit-btn {
+            background: #e0e7ff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 30px;
+            color: #2563eb;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
         @media (max-width: 800px) {
             .dashboard {
                 grid-template-columns: 1fr;
@@ -270,7 +263,7 @@
             <h1>📅 MySchedule</h1>
             <p>Premium Reminder · Sync Semua Peranti</p>
         </div>
-        <div class="sync-status" id="syncStatus">☁️ Tersambung ke Cloud</div>
+        <div class="sync-status" id="syncStatus">☁️ Menyambung ke Cloud...</div>
     </div>
 
     <div class="tabs" id="tabContainer">
@@ -281,12 +274,11 @@
     </div>
 
     <div class="dashboard">
-        <!-- Left: Calendar + Form -->
         <div>
-            <div class="card calendar-card">
+            <div class="card">
                 <div class="calendar-header">
                     <button class="nav-btn" id="prevMonthBtn">←</button>
-                    <span class="month-year" id="monthYearDisplay">Jun 2025</span>
+                    <span class="month-year" id="monthYearDisplay"></span>
                     <button class="nav-btn" id="nextMonthBtn">→</button>
                 </div>
                 <div class="weekdays">
@@ -305,7 +297,6 @@
             </div>
         </div>
 
-        <!-- Right: Reminder List -->
         <div class="card">
             <h3 style="margin-bottom: 20px;">📋 Senarai Schedule</h3>
             <div id="reminderList">Loading reminders...</div>
@@ -316,20 +307,21 @@
 <script>
     // 🔴🔴🔴 PASTE firebaseConfig AWAK DI SINI 🔴🔴🔴
     const firebaseConfig = {
-        apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
+         apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
   authDomain: "myschedule2050.firebaseapp.com",
   projectId: "myschedule2050",
   storageBucket: "myschedule2050.firebasestorage.app",
   messagingSenderId: "483213696345",
   appId: "1:483213696345:web:8f6bc228ddfafb5b98c048"
-};
+    };
     // 🔴🔴🔴 SAMPAI SINI SAHAJA 🔴🔴🔴
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let currentViewDate = new Date(); // for calendar
+    // State
+    let currentViewDate = new Date();
     let selectedDate = new Date().toISOString().split('T')[0];
     let currentPeriod = 'daily';
     let reminders = [];
@@ -345,10 +337,10 @@
     const editId = document.getElementById('editId');
     const syncStatus = document.getElementById('syncStatus');
 
-    // Load data from Firestore
+    // Load reminders from Firestore
     async function loadReminders() {
         try {
-            const snapshot = await db.collection('reminders').orderBy('dateTime').get();
+            const snapshot = await db.collection('reminders').orderBy('date').get();
             reminders = [];
             snapshot.forEach(doc => {
                 reminders.push({ id: doc.id, ...doc.data() });
@@ -356,55 +348,65 @@
             renderReminderList();
             renderCalendar();
             syncStatus.innerText = "✅ Sync Live · Cloud";
+            syncStatus.style.background = "#10b98120";
+            syncStatus.style.color = "#059669";
         } catch (error) {
-            console.error(error);
-            syncStatus.innerText = "⚠️ Guna offline sementara";
+            console.error("Firebase error:", error);
+            syncStatus.innerText = "⚠️ Ralat Firebase - Periksa config / test mode";
+            syncStatus.style.background = "#fee2e2";
+            syncStatus.style.color = "#dc2626";
         }
     }
 
-    // Save / Update
+    // Save reminder
     saveBtn.onclick = async () => {
         const title = reminderTitle.value.trim();
         const date = reminderDate.value;
-        const time = reminderTime.value;
+        const time = reminderTime.value || "00:00";
+        
         if (!title || !date) {
             alert("Tajuk dan tarikh wajib diisi!");
             return;
         }
-        const dateTime = `${date} ${time || "00:00"}`;
-        const timestamp = new Date(`${date}T${time || "00:00"}`).getTime();
-        const data = { title, date, time: time || "00:00", dateTime, timestamp };
 
-        if (editId.value) {
-            await db.collection('reminders').doc(editId.value).update(data);
-            editId.value = "";
-        } else {
-            await db.collection('reminders').add(data);
+        const data = { title, date, time };
+
+        try {
+            if (editId.value) {
+                await db.collection('reminders').doc(editId.value).update(data);
+                editId.value = "";
+            } else {
+                await db.collection('reminders').add(data);
+            }
+            reminderTitle.value = "";
+            reminderDate.value = "";
+            reminderTime.value = "";
+            await loadReminders();
+            scheduleNotification(data);
+        } catch (error) {
+            alert("Gagal simpan: " + error.message);
         }
-        reminderTitle.value = "";
-        reminderDate.value = "";
-        reminderTime.value = "";
-        await loadReminders();
-        scheduleNotification(data);
     };
 
-    async function deleteReminder(id) {
+    // Delete reminder
+    window.deleteReminder = async (id) => {
         if (confirm("Padam reminder ini?")) {
             await db.collection('reminders').doc(id).delete();
             await loadReminders();
         }
-    }
+    };
 
-    function editReminder(rem) {
+    // Edit reminder
+    window.editReminder = (rem) => {
         reminderTitle.value = rem.title;
         reminderDate.value = rem.date;
         reminderTime.value = rem.time;
         editId.value = rem.id;
-    }
+    };
 
     // Filter by period
-    function filterReminders(period, selectedDateStr = selectedDate) {
-        const refDate = new Date(selectedDateStr);
+    function filterReminders() {
+        const refDate = new Date(selectedDate);
         const year = refDate.getFullYear();
         const month = refDate.getMonth();
         const weekStart = new Date(refDate);
@@ -414,51 +416,76 @@
 
         return reminders.filter(r => {
             const rDate = new Date(r.date);
-            if (period === 'daily') return r.date === selectedDateStr;
-            if (period === 'weekly') return rDate >= weekStart && rDate <= weekEnd;
-            if (period === 'monthly') return rDate.getMonth() === month && rDate.getFullYear() === year;
-            if (period === 'yearly') return rDate.getFullYear() === year;
+            if (currentPeriod === 'daily') return r.date === selectedDate;
+            if (currentPeriod === 'weekly') return rDate >= weekStart && rDate <= weekEnd;
+            if (currentPeriod === 'monthly') return rDate.getMonth() === month && rDate.getFullYear() === year;
+            if (currentPeriod === 'yearly') return rDate.getFullYear() === year;
             return false;
         });
     }
 
     function renderReminderList() {
-        const filtered = filterReminders(currentPeriod, selectedDate);
+        const filtered = filterReminders();
         if (filtered.length === 0) {
             reminderListDiv.innerHTML = '<div style="text-align:center;color:gray;">✨ Tiada jadual. Tambah baru!</div>';
             return;
         }
         reminderListDiv.innerHTML = filtered.map(rem => `
             <div class="reminder-item">
-                <div>
-                    <h4>📌 ${rem.title}</h4>
+                <div class="reminder-info">
+                    <h4>📌 ${escapeHtml(rem.title)}</h4>
                     <div class="reminder-meta">📅 ${rem.date} ⏰ ${rem.time}</div>
                 </div>
                 <div>
                     <button class="delete-btn" onclick="deleteReminder('${rem.id}')">Hapus</button>
-                    <button style="margin-left:8px;background:#e0e7ff;border:none;padding:8px 14px;border-radius:30px;" onclick="editReminder(${JSON.stringify(rem).replace(/"/g, '&quot;')})">Edit</button>
+                    <button class="edit-btn" onclick='editReminder(${JSON.stringify(rem)})'>Edit</button>
                 </div>
             </div>
         `).join('');
     }
 
-    // Calendar Logic
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Calendar render (FIXED - correct date)
     function renderCalendar() {
         const year = currentViewDate.getFullYear();
         const month = currentViewDate.getMonth();
-        const firstDay = new Date(year, month, 1).getDay();
+        const firstDayOfMonth = new Date(year, month, 1);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        monthYearDisplay.innerText = new Date(year, month).toLocaleDateString('ms-MY', { month: 'long', year: 'numeric' });
-
+        const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
+        
+        // Format month/year display
+        const monthNames = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+        monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
+        
         let calendarHtml = '';
-        for (let i = 0; i < firstDay; i++) calendarHtml += '<div></div>';
+        // Empty cells before first day
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            calendarHtml += '<div></div>';
+        }
+        
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const isSelected = (selectedDate === dateStr);
-            const isToday = (dateStr === new Date().toISOString().split('T')[0]);
-            calendarHtml += `<div class="day-cell ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}" data-date="${dateStr}">${d}</div>`;
+            const isToday = (dateStr === todayStr);
+            let classes = 'day-cell';
+            if (isSelected) classes += ' selected';
+            if (isToday) classes += ' today';
+            calendarHtml += `<div class="${classes}" data-date="${dateStr}">${d}</div>`;
         }
         calendarDaysDiv.innerHTML = calendarHtml;
+        
+        // Add click listeners
         document.querySelectorAll('.day-cell[data-date]').forEach(el => {
             el.addEventListener('click', () => {
                 selectedDate = el.dataset.date;
@@ -473,14 +500,15 @@
         currentViewDate.setMonth(currentViewDate.getMonth() - 1);
         renderCalendar();
     };
+    
     document.getElementById('nextMonthBtn').onclick = () => {
         currentViewDate.setMonth(currentViewDate.getMonth() + 1);
         renderCalendar();
     };
 
-    // Tabs event
+    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentPeriod = btn.dataset.period;
@@ -488,16 +516,16 @@
         });
     });
 
-    // Notifications (browser popup)
+    // Browser notification
     function scheduleNotification(rem) {
         if (!("Notification" in window)) return;
         if (Notification.permission === "granted") {
-            const reminderTime = new Date(`${rem.date}T${rem.time}`);
+            const reminderDateTime = new Date(`${rem.date}T${rem.time}`);
             const now = new Date();
-            const delay = reminderTime - now;
+            const delay = reminderDateTime - now;
             if (delay > 0 && delay < 86400000) {
                 setTimeout(() => {
-                    new Notification("MySchedule", { body: `🔔 ${rem.title} pada ${rem.time}`, icon: "https://firebasestorage.googleapis.com/..." });
+                    new Notification("MySchedule", { body: `🔔 ${rem.title} pada ${rem.time}` });
                 }, delay);
             }
         } else if (Notification.permission !== "denied") {
@@ -505,13 +533,16 @@
         }
     }
 
-    // Auto load + realtime updates
+    // Initial load
     window.onload = async () => {
-        await loadReminders();
         reminderDate.value = selectedDate;
+        await loadReminders();
         if (Notification.permission === "default") Notification.requestPermission();
-        // realtime
-        db.collection('reminders').onSnapshot(() => loadReminders());
+        
+        // Real-time listener
+        db.collection('reminders').onSnapshot(() => {
+            loadReminders();
+        });
     };
 </script>
 </body>
