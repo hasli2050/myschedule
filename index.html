@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <title>MySchedule | Premium Reminder</title>
     
-    <!-- PWA Meta Tags (Penting untuk Mobile) -->
+    <!-- PWA Meta Tags -->
     <link rel="apple-touch-icon" href="https://arleta.site/interactivelink/4045/MySchedule.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -45,7 +45,7 @@
             background: var(--bg-primary);
             min-height: 100vh;
             padding: 16px;
-            padding-bottom: 80px; /* Space for FAB */
+            padding-bottom: 80px;
             color: var(--text-primary);
             transition: all 0.3s ease;
         }
@@ -85,8 +85,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
         .icon-btn:active { transform: scale(0.9); }
+        .icon-btn .badge {
+            position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid var(--bg-card); display: none;
+        }
+        .icon-btn.pending-perm .badge { display: block; }
         
         .sync-status {
             background: #10b98120;
@@ -95,7 +100,25 @@
             font-size: 11px;
             color: #059669;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
+        .sync-status.offline { background: #fee2e2; color: #dc2626; }
+
+        .up-next-card {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+            display: none;
+        }
+        .up-next-card.show { display: block; animation: slideUp 0.4s ease; }
+        .up-next-card h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 8px; }
+        .up-next-card .title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .up-next-card .time { font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 6px; }
 
         .stats-bar {
             display: grid;
@@ -162,11 +185,6 @@
         .btn-primary { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; border: none; padding: 14px 16px; border-radius: 40px; font-weight: 600; font-size: 15px; cursor: pointer; width: 100%; transition: transform 0.2s; }
         .btn-primary:active { transform: scale(0.98); }
 
-        .btn-test-notif {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white; border: none; padding: 10px 16px; border-radius: 40px; font-weight: 600; font-size: 13px; cursor: pointer; width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-
         .reminder-item {
             background: var(--bg-soft); border-radius: 18px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-left: 4px solid var(--accent); transition: all 0.2s;
         }
@@ -181,12 +199,13 @@
         .reminder-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         
         .category-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; font-weight: 600; }
-        .cat-kerja { background: #3b82f6; } .cat-peribadi { background: #8b5cf6; } .cat-kesihatan { background: #10b981; } .cat-kewangan { background: #f59e0b; } .cat-lain { background: #6b7280; }
+        .cat-work { background: #3b82f6; } .cat-personal { background: #8b5cf6; } .cat-health { background: #10b981; } .cat-finance { background: #f59e0b; } .cat-other { background: #6b7280; }
         .priority-badge { font-size: 10px; font-weight: 700; }
 
         .reminder-actions { display: flex; flex-direction: column; gap: 5px; }
-        .action-btn { border: none; padding: 6px 10px; border-radius: 20px; font-weight: 600; font-size: 11px; cursor: pointer; white-space: nowrap; }
+        .action-btn { border: none; padding: 6px 10px; border-radius: 20px; font-weight: 600; font-size: 11px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .btn-complete { background: #d1fae5; color: #059669; }
+        .btn-share { background: #e0f2fe; color: #0284c7; }
         .btn-edit { background: #e0e7ff; color: #2563eb; }
         .btn-delete { background: #fee2e2; color: #dc2626; }
 
@@ -215,6 +234,7 @@
 
         @keyframes ring { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-20deg); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.9; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9998; display: flex; flex-direction: column; gap: 10px; max-width: 320px; pointer-events: none; }
         .toast { background: var(--bg-card); padding: 14px 18px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border-left: 4px solid var(--accent); animation: slideIn 0.3s ease; display: flex; gap: 10px; align-items: flex-start; pointer-events: auto; }
@@ -232,7 +252,7 @@
             .logo h1 { font-size: 18px; }
             .form-row { grid-template-columns: 1fr; }
         }
-    </style>
+    </style.>
 </head>
 <body>
 <div class="container">
@@ -245,16 +265,29 @@
             </div>
         </div>
         <div class="header-actions">
+            <button class="icon-btn pending-perm" id="notifBtn" title="Enable Notifications">
+                🔔
+                <span class="badge"></span>
+            </button>
             <button class="icon-btn" id="themeBtn" title="Toggle Dark Mode">🌙</button>
-            <div class="sync-status" id="syncStatus">☁️ Connecting...</div>
+            <div class="sync-status" id="syncStatus">
+                <span>☁️</span> <span>Connecting...</span>
+            </div.>
         </div>
     </div>
 
+    <!-- UP NEXT CARD -->
+    <div class="up-next-card" id="upNextCard">
+        <h3>⏳ Up Next</h3>
+        <div class="title" id="upNextTitle">No upcoming reminders</div>
+        <div class="time" id="upNextTime">--</div>
+    </div>
+
     <div class="stats-bar">
-        <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Jumlah</div></div>
-        <div class="stat-card"><div class="num" id="statPending" style="color:#f59e0b">0</div><div class="label">Belum</div></div>
-        <div class="stat-card"><div class="num" id="statDone" style="color:#10b981">0</div><div class="label">Selesai</div></div>
-        <div class="stat-card"><div class="num" id="statOverdue" style="color:#ef4444">0</div><div class="label">Lepas</div></div>
+        <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Total</div></div>
+        <div class="stat-card"><div class="num" id="statPending" style="color:#f59e0b">0</div><div class="label">Pending</div></div>
+        <div class="stat-card"><div class="num" id="statDone" style="color:#10b981">0</div><div class="label">Done</div></div>
+        <div class="stat-card"><div class="num" id="statOverdue" style="color:#ef4444">0</div><div class="label">Overdue</div></div>
     </div>
 
     <div class="tabs">
@@ -272,126 +305,120 @@
                 <button class="nav-btn" id="nextMonthBtn">→</button>
             </div>
             <div class="weekdays">
-                <span>Ahd</span><span>Isn</span><span>Sel</span><span>Rab</span><span>Kha</span><span>Jum</span><span>Sab</span>
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
             </div>
             <div class="calendar-days" id="calendarDays"></div>
         </div>
 
         <div class="card reminder-section">
-            <h3>📋 Senarai Reminder</h3>
+            <h3>📋 Reminder List</h3>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Cari reminder...">
+                <input type="text" id="searchInput" placeholder="Search reminders...">
             </div>
             <div class="filter-row" id="filterRow">
-                <div class="filter-chip active" data-cat="all">Semua</div>
-                <div class="filter-chip" data-cat="kerja">💼 Kerja</div>
-                <div class="filter-chip" data-cat="peribadi">👤 Peribadi</div>
-                <div class="filter-chip" data-cat="kesihatan">💚 Kesihatan</div>
-                <div class="filter-chip" data-cat="kewangan">💰 Kewangan</div>
-                <div class="filter-chip" data-cat="lain">📌 Lain</div>
+                <div class="filter-chip active" data-cat="all">All</div>
+                <div class="filter-chip" data-cat="work">💼 Work</div>
+                <div class="filter-chip" data-cat="personal">👤 Personal</div>
+                <div class="filter-chip" data-cat="health">💚 Health</div>
+                <div class="filter-chip" data-cat="finance">💰 Finance</div>
+                <div class="filter-chip" data-cat="other">📌 Other</div>
             </div>
             <div id="reminderList">Loading...</div>
         </div>
 
         <div class="card form-section">
-            <h3>✨ Tambah / Edit Reminder</h3>
-            
-            <!-- BUTANG TEST NOTIFICATION (PENTING UNTUK PWA) -->
-            <button class="btn-test-notif" id="testNotifBtn">
-                🔔 Test Notification (Klik Sini Dulu!)
-            </button>
-
+            <h3>✨ Add / Edit Reminder</h3>
             <div class="form-group">
-                <label>Tajuk *</label>
-                <input type="text" id="reminderTitle" placeholder="Contoh: Meeting dengan client">
+                <label>Title *</label>
+                <input type="text" id="reminderTitle" placeholder="e.g., Team Meeting">
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Tarikh *</label>
+                    <label>Date *</label>
                     <input type="date" id="reminderDate">
                 </div>
                 <div class="form-group">
-                    <label>Masa</label>
+                    <label>Time</label>
                     <input type="time" id="reminderTime">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Kategori</label>
+                    <label>Category</label>
                     <select id="reminderCategory">
-                        <option value="kerja">💼 Kerja</option>
-                        <option value="peribadi">👤 Peribadi</option>
-                        <option value="kesihatan">💚 Kesihatan</option>
-                        <option value="kewangan">💰 Kewangan</option>
-                        <option value="lain">📌 Lain-lain</option>
+                        <option value="work">💼 Work</option>
+                        <option value="personal">👤 Personal</option>
+                        <option value="health">💚 Health</option>
+                        <option value="finance">💰 Finance</option>
+                        <option value="other">📌 Other</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Prioriti</label>
+                    <label>Priority</label>
                     <select id="reminderPriority">
-                        <option value="medium">🟡 Sederhana</option>
-                        <option value="high">🔴 Tinggi</option>
-                        <option value="low">🟢 Rendah</option>
+                        <option value="medium">🟡 Medium</option>
+                        <option value="high">🔴 High</option>
+                        <option value="low">🟢 Low</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
-                <label>Nota Tambahan</label>
-                <textarea id="reminderNotes" rows="2" placeholder="Lokasi, link, dll..."></textarea>
+                <label>Notes</label>
+                <textarea id="reminderNotes" rows="2" placeholder="Location, links, etc..."></textarea>
             </div>
-            <button class="btn-primary" id="saveBtn">💾 Simpan Reminder</button>
+            <button class="btn-primary" id="saveBtn">💾 Save Reminder</button>
             <input type="hidden" id="editId" value="">
         </div>
     </div>
 </div>
 
-<button class="fab" id="fabBtn" title="Tambah Cepat">+</button>
+<button class="fab" id="fabBtn" title="Quick Add">+</button>
 
 <!-- Edit Modal -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <h3>✏️ Edit Reminder</h3>
         <div class="form-group">
-            <label>Tajuk</label>
+            <label>Title</label>
             <input type="text" id="modalTitle">
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Tarikh</label>
+                <label>Date</label>
                 <input type="date" id="modalDate">
             </div>
             <div class="form-group">
-                <label>Masa</label>
+                <label>Time</label>
                 <input type="time" id="modalTime">
             </div>
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Kategori</label>
+                <label>Category</label>
                 <select id="modalCategory">
-                    <option value="kerja">💼 Kerja</option>
-                    <option value="peribadi">👤 Peribadi</option>
-                    <option value="kesihatan">💚 Kesihatan</option>
-                    <option value="kewangan">💰 Kewangan</option>
-                    <option value="lain">📌 Lain-lain</option>
+                    <option value="work">💼 Work</option>
+                    <option value="personal">👤 Personal</option>
+                    <option value="health">💚 Health</option>
+                    <option value="finance">💰 Finance</option>
+                    <option value="other">📌 Other</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Prioriti</label>
+                <label>Priority</label>
                 <select id="modalPriority">
-                    <option value="medium">🟡 Sederhana</option>
-                    <option value="high">🔴 Tinggi</option>
-                    <option value="low">🟢 Rendah</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
+                    <option value="low">🟢 Low</option>
                 </select>
             </div>
         </div>
         <div class="form-group">
-            <label>Nota</label>
+            <label>Notes</label>
             <textarea id="modalNotes" rows="2"></textarea>
         </div>
         <div class="modal-buttons">
-            <button class="btn-cancel" id="modalCancelBtn">Batal</button>
-            <button class="btn-save" id="modalSaveBtn">Simpan</button>
+            <button class="btn-cancel" id="modalCancelBtn">Cancel</button>
+            <button class="btn-save" id="modalSaveBtn">Save</button>
         </div>
     </div>
 </div>
@@ -400,10 +427,10 @@
 <div id="reminderPopup" class="reminder-popup">
     <div class="bell">🔔</div>
     <h2 id="popupTitle">Reminder!</h2>
-    <p id="popupMessage">Anda ada reminder</p>
+    <p id="popupMessage">You have a reminder</p>
     <div>
-        <button id="popupComplete">✅ Selesai</button>
-        <button id="popupDismiss">✖ Tutup</button>
+        <button id="popupComplete">✅ Done</button>
+        <button id="popupDismiss">✖ Dismiss</button>
     </div>
 </div>
 
@@ -424,6 +451,9 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// Enable offline persistence
+db.enablePersistence().catch(err => console.log("Offline persistence error:", err));
 
 // ========================
 // 2. APP STATE
@@ -460,25 +490,25 @@ const toastContainer = $('toastContainer');
 // ========================
 async function requestNotificationPermission() {
     if (!("Notification" in window)) {
-        showToast("⚠️", "Tidak Disokong", "Browser ini tidak menyokong notification.");
+        showToast("⚠️", "Not Supported", "This browser does not support notifications.");
         return false;
     }
     if (Notification.permission === "granted") {
-        showToast("✅", "Sudah Aktif", "Notification sudah dibenarkan untuk PWA ini.");
+        showToast("✅", "Already Active", "Notifications are already enabled for this PWA.");
+        $('notifBtn').classList.remove('pending-perm');
         return true;
     }
     if (Notification.permission === "denied") {
-        showToast("⚠️", "Disekat", "Sila pergi ke Settings > Site Settings > Notifications untuk benarkan.");
+        showToast("⚠️", "Blocked", "Please enable notifications in your device Settings.");
         return false;
     }
     
-    // PENTING: Mesti dipanggil selepas user gesture (klik butang)
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
-        showToast("✅", "Berjaya!", "Notification PWA sudah diaktifkan.");
-        // Test notification segera untuk confirm
+        showToast("✅", "Success!", "PWA Notifications are now active.");
+        $('notifBtn').classList.remove('pending-perm');
         new Notification("🎉 MySchedule PWA", { 
-            body: "Test berjaya! Anda akan terima reminder tepat pada masanya.", 
+            body: "Test successful! You will receive reminders right on time.", 
             icon: "https://arleta.site/interactivelink/4045/MySchedule.png" 
         });
         return true;
@@ -486,11 +516,8 @@ async function requestNotificationPermission() {
     return false;
 }
 
-$('testNotifBtn').onclick = async () => {
-    const success = await requestNotificationPermission();
-    if (success) {
-        showToast("🔔", "Test Berjaya", "Jika anda nampak notification di atas, PWA anda berfungsi 100%!");
-    }
+$('notifBtn').onclick = async () => {
+    await requestNotificationPermission();
 };
 
 function triggerWebNotification(title, body) {
@@ -541,14 +568,13 @@ function playAlertSound() {
 function showReminderPopup(rem) {
     currentPopupReminder = rem;
     $('popupTitle').textContent = rem.title;
-    $('popupMessage').textContent = rem.notes || `Masa: ${rem.time}`;
+    $('popupMessage').textContent = rem.notes || `Time: ${rem.time}`;
     reminderPopup.classList.add('show');
     playAlertSound();
 }
 
 function checkReminders() {
     const currentDateStr = getTodayStr();
-    const currentTimeStr = getCurrentTimeStr();
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
@@ -562,7 +588,7 @@ function checkReminders() {
         if (localStorage.getItem(notifiedKey)) return;
         
         localStorage.setItem(notifiedKey, "true");
-        triggerWebNotification(rem.title, rem.notes || `Masa: ${rem.time}`);
+        triggerWebNotification(rem.title, rem.notes || `Time: ${rem.time}`);
         showToast("🔔", rem.title, rem.notes || `${rem.date} • ${rem.time}`, 10000);
         showReminderPopup(rem);
     });
@@ -577,14 +603,14 @@ async function loadReminders() {
         reminders = [];
         snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
         renderAll();
-        syncStatus.innerText = "✅ Sync Live";
-        syncStatus.style.background = "#10b98120";
-        syncStatus.style.color = "#059669";
+        
+        const isOnline = navigator.onLine;
+        syncStatus.innerHTML = isOnline ? "<span>✅</span> <span>Sync Live</span>" : "<span>📡</span> <span>Offline Mode</span>";
+        syncStatus.className = isOnline ? "sync-status" : "sync-status offline";
     } catch (error) {
         console.error(error);
-        syncStatus.innerText = "⚠️ Error";
-        syncStatus.style.background = "#fee2e2";
-        syncStatus.style.color = "#dc2626";
+        syncStatus.innerHTML = "<span>⚠️</span> <span>Error</span>";
+        syncStatus.className = "sync-status offline";
     }
 }
 
@@ -597,7 +623,7 @@ $('saveBtn').onclick = async () => {
     const notes = $('reminderNotes').value.trim();
     
     if (!title || !date) {
-        showToast("⚠️", "Ralat", "Tajuk dan tarikh wajib diisi!");
+        showToast("⚠️", "Error", "Title and date are required!");
         return;
     }
     
@@ -606,15 +632,15 @@ $('saveBtn').onclick = async () => {
     try {
         if ($('editId').value) {
             await db.collection('reminders').doc($('editId').value).update(data);
-            showToast("✅", "Dikemaskini", "Reminder berjaya dikemaskini");
+            showToast("✅", "Updated", "Reminder successfully updated");
         } else {
             await db.collection('reminders').add(data);
-            showToast("✅", "Ditambah", "Reminder baru berjaya ditambah");
+            showToast("✅", "Added", "New reminder successfully added");
         }
         clearForm();
         await loadReminders();
     } catch (error) {
-        showToast("❌", "Gagal", error.message);
+        showToast("❌", "Failed", error.message);
     }
 };
 
@@ -623,15 +649,15 @@ function clearForm() {
     $('reminderDate').value = "";
     $('reminderTime').value = "";
     $('reminderNotes').value = "";
-    $('reminderCategory').value = "kerja";
+    $('reminderCategory').value = "work";
     $('reminderPriority').value = "medium";
     $('editId').value = "";
 }
 
 async function deleteReminder(id) {
-    if (!confirm("Padam reminder ini?")) return;
+    if (!confirm("Delete this reminder?")) return;
     await db.collection('reminders').doc(id).delete();
-    showToast("🗑️", "Dipadam", "Reminder berjaya dipadam");
+    showToast("🗑️", "Deleted", "Reminder successfully deleted");
     await loadReminders();
 }
 
@@ -639,7 +665,7 @@ async function toggleComplete(id) {
     const rem = reminders.find(r => r.id === id);
     if (!rem) return;
     await db.collection('reminders').doc(id).update({ completed: !rem.completed });
-    if (!rem.completed) showToast("✅", "Syabas!", "Reminder ditandakan selesai");
+    if (!rem.completed) showToast("✅", "Great Job!", "Reminder marked as done");
     await loadReminders();
 }
 
@@ -649,7 +675,7 @@ function openEditModal(rem) {
     $('modalTitle').value = rem.title || "";
     $('modalDate').value = rem.date || "";
     $('modalTime').value = rem.time || "";
-    $('modalCategory').value = rem.category || "kerja";
+    $('modalCategory').value = rem.category || "work";
     $('modalPriority').value = rem.priority || "medium";
     $('modalNotes').value = rem.notes || "";
     modal.classList.add('show');
@@ -666,16 +692,16 @@ $('modalSaveBtn').onclick = async () => {
         notes: $('modalNotes').value.trim()
     };
     if (!data.title || !data.date) {
-        showToast("⚠️", "Ralat", "Tajuk dan tarikh wajib diisi!");
+        showToast("⚠️", "Error", "Title and date are required!");
         return;
     }
     try {
         await db.collection('reminders').doc(currentEditId).update(data);
         modal.classList.remove('show');
-        showToast("✅", "Dikemaskini", "Reminder berjaya dikemaskini");
+        showToast("✅", "Updated", "Reminder successfully updated");
         await loadReminders();
     } catch (error) {
-        showToast("❌", "Gagal", error.message);
+        showToast("❌", "Failed", error.message);
     }
 };
 $('modalCancelBtn').onclick = () => modal.classList.remove('show');
@@ -715,7 +741,7 @@ function renderCalendar() {
     calendarDaysDiv.innerHTML = '';
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
-    const monthNames = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
     
     const firstDay = new Date(year, month, 1).getDay();
@@ -756,13 +782,13 @@ function renderReminderList() {
     const filtered = getFilteredReminders();
     
     if (filtered.length === 0) {
-        reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Tiada reminder untuk tempoh ini</p></div>`;
+        reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No reminders for this period</p></div>`;
         return;
     }
     
     filtered.forEach(rem => {
-        const catLabels = { kerja: '💼 Kerja', peribadi: '👤 Peribadi', kesihatan: '💚 Kesihatan', kewangan: '💰 Kewangan', lain: '📌 Lain' };
-        const priorityLabels = { high: '🔴 TINGGI', medium: '🟡 SEDERHANA', low: '🟢 RENDAH' };
+        const catLabels = { work: '💼 Work', personal: '👤 Personal', health: '💚 Health', finance: '💰 Finance', other: '📌 Other' };
+        const priorityLabels = { high: '🔴 HIGH', medium: '🟡 MED', low: '🟢 LOW' };
         
         const div = document.createElement('div');
         div.className = `reminder-item priority-${rem.priority || 'medium'} ${rem.completed ? 'completed' : ''}`;
@@ -772,23 +798,73 @@ function renderReminderList() {
                 <div class="reminder-meta">
                     <span>🕒 ${rem.time || '--:--'}</span>
                     <span>📅 ${rem.date}</span>
-                    <span class="category-badge cat-${rem.category || 'lain'}">${catLabels[rem.category || 'lain']}</span>
+                    <span class="category-badge cat-${rem.category || 'other'}">${catLabels[rem.category || 'other']}</span>
                     <span class="priority-badge">${priorityLabels[rem.priority || 'medium']}</span>
                 </div>
                 ${rem.notes ? `<div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">📝 ${rem.notes}</div>` : ''}
             </div>
             <div class="reminder-actions">
-                <button class="action-btn btn-complete" data-id="${rem.id}">${rem.completed ? '↩️' : '✅'}</button>
-                <button class="action-btn btn-edit" data-id="${rem.id}">✏️</button>
-                <button class="action-btn btn-delete" data-id="${rem.id}">🗑️</button>
+                <button class="action-btn btn-complete" data-id="${rem.id}" title="Toggle Complete">${rem.completed ? '↩️' : '✅'}</button>
+                <button class="action-btn btn-share" data-id="${rem.id}" title="Share">📤</button>
+                <button class="action-btn btn-edit" data-id="${rem.id}" title="Edit">✏️</button>
+                <button class="action-btn btn-delete" data-id="${rem.id}" title="Delete">🗑️</button>
             </div>
         `;
         reminderListDiv.appendChild(div);
     });
     
     reminderListDiv.querySelectorAll('.btn-complete').forEach(b => b.onclick = () => toggleComplete(b.dataset.id));
+    reminderListDiv.querySelectorAll('.btn-share').forEach(b => b.onclick = () => shareReminder(b.dataset.id));
     reminderListDiv.querySelectorAll('.btn-edit').forEach(b => b.onclick = () => openEditModal(reminders.find(r => r.id === b.dataset.id)));
     reminderListDiv.querySelectorAll('.btn-delete').forEach(b => b.onclick = () => deleteReminder(b.dataset.id));
+}
+
+async function shareReminder(id) {
+    const rem = reminders.find(r => r.id === id);
+    if (!rem) return;
+    const text = `📅 Reminder: ${rem.title}\n🕒 ${rem.date} at ${rem.time || 'All day'}\n📝 ${rem.notes || 'No notes'}`;
+    
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'MySchedule Reminder', text: text });
+        } catch (err) { console.log('Share canceled'); }
+    } else {
+        // Fallback to WhatsApp
+        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+    }
+}
+
+function renderUpNext() {
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const todayStr = getTodayStr();
+    
+    // Find the closest upcoming reminder that is not completed
+    const upcoming = reminders
+        .filter(r => !r.completed)
+        .sort((a, b) => {
+            const dateA = new Date(a.date + "T" + (a.time || "00:00"));
+            const dateB = new Date(b.date + "T" + (b.time || "00:00"));
+            return dateA - dateB;
+        })
+        .find(r => {
+            if (r.date > todayStr) return true;
+            if (r.date === todayStr && r.time) {
+                const [h, m] = r.time.split(':').map(Number);
+                return (h * 60 + m) > nowMinutes;
+            }
+            return false;
+        });
+
+    const card = $('upNextCard');
+    if (upcoming) {
+        card.classList.add('show');
+        $('upNextTitle').textContent = upcoming.title;
+        $('upNextTime').innerHTML = `🕒 ${upcoming.date} at ${upcoming.time || 'All day'} <span class="category-badge cat-${upcoming.category || 'other'}" style="margin-left:8px">${upcoming.category || 'Other'}</span>`;
+    } else {
+        card.classList.remove('show');
+    }
 }
 
 function renderStats() {
@@ -815,6 +891,7 @@ function renderAll() {
     renderCalendar();
     renderReminderList();
     renderStats();
+    renderUpNext();
 }
 
 // ========================
@@ -863,6 +940,10 @@ $('popupComplete').onclick = () => {
 };
 $('popupDismiss').onclick = () => reminderPopup.classList.remove('show');
 
+// Online/Offline detection
+window.addEventListener('online', () => { syncStatus.innerHTML = "<span>✅</span> <span>Sync Live</span>"; syncStatus.className = "sync-status"; });
+window.addEventListener('offline', () => { syncStatus.innerHTML = "<span>📡</span> <span>Offline Mode</span>"; syncStatus.className = "sync-status offline"; });
+
 // ========================
 // 7. INITIALIZATION
 // ========================
@@ -875,6 +956,11 @@ $('reminderDate').value = getTodayStr();
 // Check reminders every 15 seconds
 setInterval(checkReminders, 15000);
 setTimeout(checkReminders, 2000);
+
+// Check if notification permission is pending to show the red badge
+if ("Notification" in window && Notification.permission === "default") {
+    $('notifBtn').classList.add('pending-perm');
+}
 
 loadReminders();
 </script>
