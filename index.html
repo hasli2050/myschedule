@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>MySchedule | Premium Reminder</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
@@ -96,19 +95,6 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-        }
-
-        /* Mobile: Senarai di atas, form di bawah */
-        .reminder-section {
-            order: 1;
-        }
-
-        .form-section {
-            order: 2;
-        }
-
-        .calendar-section {
-            order: 0;
         }
 
         @media (min-width: 768px) {
@@ -284,7 +270,6 @@
             margin-left: 6px;
         }
 
-        /* Modal Popup */
         .modal {
             display: none;
             position: fixed;
@@ -304,7 +289,6 @@
             padding: 24px;
             width: 90%;
             max-width: 400px;
-            margin: 20px;
         }
 
         .modal-content h3 {
@@ -364,7 +348,6 @@
     </div>
 
     <div class="dashboard">
-        <!-- Kalendar -->
         <div class="card calendar-section">
             <div class="calendar-header">
                 <button class="nav-btn" id="prevMonthBtn">←</button>
@@ -377,26 +360,23 @@
             <div class="calendar-days" id="calendarDays"></div>
         </div>
 
-        <!-- Senarai Schedule (Atas untuk mobile) -->
         <div class="card reminder-section">
             <h3 style="margin-bottom: 16px;">📋 Senarai Schedule</h3>
             <div id="reminderList">Loading...</div>
         </div>
 
-        <!-- Form Tambah/Edit (Bawah untuk mobile) -->
         <div class="card form-section">
             <h3 style="margin-bottom: 16px;">✨ Tambah / Edit Reminder</h3>
             <input type="text" id="reminderTitle" placeholder="Tajuk reminder *" style="margin-bottom: 12px;">
             <input type="date" id="reminderDate" style="margin-bottom: 12px;">
-            <input type="time" id="reminderTime" placeholder="HH:MM" style="margin-bottom: 12px;" title="Format 24 jam, contoh: 14:30">
-            <textarea id="reminderNotes" rows="2" placeholder="Nota tambahan (contoh: lokasi, pautan, senarai)" style="margin-bottom: 16px;"></textarea>
+            <input type="time" id="reminderTime" placeholder="HH:MM" style="margin-bottom: 12px;">
+            <textarea id="reminderNotes" rows="2" placeholder="Nota tambahan (contoh: lokasi, pautan)" style="margin-bottom: 16px;"></textarea>
             <button class="btn-primary" id="saveBtn">💾 Simpan Reminder</button>
             <input type="hidden" id="editId" value="">
         </div>
     </div>
 </div>
 
-<!-- Modal Popup untuk Edit -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <h3>✏️ Edit Reminder</h3>
@@ -412,7 +392,6 @@
 </div>
 
 <script>
-    // 🔴🔴🔴 PASTE firebaseConfig AWAK DI SINI 🔴🔴🔴
     const firebaseConfig = {
         apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
   authDomain: "myschedule2050.firebaseapp.com",
@@ -421,8 +400,6 @@
   messagingSenderId: "483213696345",
   appId: "1:483213696345:web:8f6bc228ddfafb5b98c048"
 };
-    // 🔴🔴🔴 SAMPAI SINI 🔴🔴🔴
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -432,7 +409,6 @@
     let reminders = [];
     let currentEditId = null;
 
-    // DOM elements
     const calendarDaysDiv = document.getElementById('calendarDays');
     const monthYearDisplay = document.getElementById('monthYearDisplay');
     const reminderListDiv = document.getElementById('reminderList');
@@ -444,7 +420,6 @@
     const editId = document.getElementById('editId');
     const syncStatus = document.getElementById('syncStatus');
 
-    // Modal elements
     const modal = document.getElementById('editModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalDate = document.getElementById('modalDate');
@@ -453,60 +428,45 @@
     const modalCancelBtn = document.getElementById('modalCancelBtn');
     const modalSaveBtn = document.getElementById('modalSaveBtn');
 
-    // Load reminders
     async function loadReminders() {
         try {
             const snapshot = await db.collection('reminders').orderBy('date').get();
             reminders = [];
-            snapshot.forEach(doc => {
-                reminders.push({ id: doc.id, ...doc.data() });
-            });
+            snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
             renderReminderList();
             renderCalendar();
             syncStatus.innerText = "✅ Sync Live · Cloud";
             syncStatus.style.background = "#10b98120";
             syncStatus.style.color = "#059669";
         } catch (error) {
-            console.error(error);
             syncStatus.innerText = "⚠️ Ralat Firebase";
             syncStatus.style.background = "#fee2e2";
             syncStatus.style.color = "#dc2626";
         }
     }
 
-    // Save new reminder
     saveBtn.onclick = async () => {
         const title = reminderTitle.value.trim();
         const date = reminderDate.value;
         const time = reminderTime.value || "00:00";
         const notes = reminderNotes.value.trim();
-
-        if (!title || !date) {
-            alert("Tajuk dan tarikh wajib diisi!");
-            return;
-        }
-
+        if (!title || !date) return alert("Tajuk dan tarikh wajib diisi!");
+        
         const data = { title, date, time, notes };
-
         try {
-            if (editId.value) {
-                await db.collection('reminders').doc(editId.value).update(data);
-                editId.value = "";
-            } else {
-                await db.collection('reminders').add(data);
-            }
+            if (editId.value) await db.collection('reminders').doc(editId.value).update(data);
+            else await db.collection('reminders').add(data);
             reminderTitle.value = "";
             reminderDate.value = "";
             reminderTime.value = "";
             reminderNotes.value = "";
+            editId.value = "";
             await loadReminders();
-            scheduleNotification(data);
         } catch (error) {
             alert("Gagal simpan: " + error.message);
         }
     };
 
-    // Delete reminder
     window.deleteReminder = async (id) => {
         if (confirm("Padam reminder ini?")) {
             await db.collection('reminders').doc(id).delete();
@@ -514,17 +474,15 @@
         }
     };
 
-    // Open modal for edit
     window.openEditModal = (rem) => {
         currentEditId = rem.id;
         modalTitle.value = rem.title;
         modalDate.value = rem.date;
-        modalTime.value = rem.time || "00:00";
+        modalTime.value = rem.time;
         modalNotes.value = rem.notes || "";
         modal.style.display = "flex";
     };
 
-    // Save from modal
     modalSaveBtn.onclick = async () => {
         const data = {
             title: modalTitle.value.trim(),
@@ -532,24 +490,15 @@
             time: modalTime.value || "00:00",
             notes: modalNotes.value.trim()
         };
-        if (!data.title || !data.date) {
-            alert("Tajuk dan tarikh wajib diisi!");
-            return;
-        }
+        if (!data.title || !data.date) return alert("Tajuk dan tarikh wajib diisi!");
         await db.collection('reminders').doc(currentEditId).update(data);
         modal.style.display = "none";
         await loadReminders();
     };
 
-    modalCancelBtn.onclick = () => {
-        modal.style.display = "none";
-    };
+    modalCancelBtn.onclick = () => modal.style.display = "none";
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 
-    window.onclick = (e) => {
-        if (e.target === modal) modal.style.display = "none";
-    };
-
-    // Filter reminders
     function filterReminders() {
         const refDate = new Date(selectedDate);
         const year = refDate.getFullYear();
@@ -558,7 +507,7 @@
         weekStart.setDate(refDate.getDate() - refDate.getDay());
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
-
+        
         return reminders.filter(r => {
             const rDate = new Date(r.date);
             if (currentPeriod === 'daily') return r.date === selectedDate;
@@ -571,7 +520,7 @@
 
     function renderReminderList() {
         const filtered = filterReminders();
-        if (filtered.length === 0) {
+        if (!filtered.length) {
             reminderListDiv.innerHTML = '<div style="text-align:center;color:gray;padding:20px;">✨ Tiada jadual. Tambah baru!</div>';
             return;
         }
@@ -592,40 +541,33 @@
 
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
 
-    // Calendar
     function renderCalendar() {
         const year = currentViewDate.getFullYear();
         const month = currentViewDate.getMonth();
-        const firstDayOfMonth = new Date(year, month, 1);
+        const firstDay = new Date(year, month, 1);
+        const startWeekday = firstDay.getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const startingDayOfWeek = firstDayOfMonth.getDay();
+        
         const monthNames = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
         monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
         
-        let calendarHtml = '';
-        for (let i = 0; i < startingDayOfWeek; i++) calendarHtml += '<div></div>';
+        let html = '';
+        for (let i = 0; i < startWeekday; i++) html += '<div></div>';
         
         const today = new Date();
         const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
         
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            const isSelected = (selectedDate === dateStr);
-            const isToday = (dateStr === todayStr);
             let classes = 'day-cell';
-            if (isSelected) classes += ' selected';
-            if (isToday) classes += ' today';
-            calendarHtml += `<div class="${classes}" data-date="${dateStr}">${d}</div>`;
+            if (dateStr === selectedDate) classes += ' selected';
+            if (dateStr === todayStr) classes += ' today';
+            html += `<div class="${classes}" data-date="${dateStr}">${d}</div>`;
         }
-        calendarDaysDiv.innerHTML = calendarHtml;
+        calendarDaysDiv.innerHTML = html;
         
         document.querySelectorAll('.day-cell[data-date]').forEach(el => {
             el.addEventListener('click', () => {
@@ -645,7 +587,7 @@
         currentViewDate.setMonth(currentViewDate.getMonth() + 1);
         renderCalendar();
     };
-
+    
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -655,27 +597,10 @@
         });
     });
 
-    // Notifications
-    function scheduleNotification(rem) {
-        if (!("Notification" in window)) return;
-        if (Notification.permission === "granted") {
-            const reminderDateTime = new Date(`${rem.date}T${rem.time}`);
-            const now = new Date();
-            const delay = reminderDateTime - now;
-            if (delay > 0 && delay < 86400000) {
-                setTimeout(() => {
-                    new Notification("MySchedule", { body: `🔔 ${rem.title} pada ${rem.time}${rem.notes ? `\n📝 ${rem.notes}` : ''}` });
-                }, delay);
-            }
-        } else if (Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
-    }
-
     window.onload = async () => {
         reminderDate.value = selectedDate;
         await loadReminders();
-        Notification.requestPermission();
+        if (Notification.permission === "default") Notification.requestPermission();
         db.collection('reminders').onSnapshot(() => loadReminders());
     };
 </script>
