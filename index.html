@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -165,6 +165,7 @@
         .day-cell {
             aspect-ratio: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             border-radius: 12px;
@@ -172,6 +173,7 @@
             font-weight: 500;
             font-size: 13px;
             background: #f8fafc;
+            position: relative;
         }
 
         .day-cell.selected {
@@ -181,6 +183,23 @@
 
         .day-cell.today {
             border: 2px solid #3b82f6;
+            background: white;
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .reminder-dot {
+            width: 4px;
+            height: 4px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-top: 2px;
+        }
+
+        .day-cell.selected .reminder-dot {
             background: white;
         }
 
@@ -335,9 +354,9 @@
     <div class="header">
         <div class="logo">
             <h1>📅 MySchedule</h1>
-            <p>Premium Reminder · Sync Semua Peranti</p>
+            <p>Premium Reminder · Cross-Device Sync</p>
         </div>
-        <div class="sync-status" id="syncStatus">☁️ Menyambung...</div>
+        <div class="sync-status" id="syncStatus">☁️ Connecting...</div>
     </div>
 
     <div class="tabs">
@@ -355,23 +374,23 @@
                 <button class="nav-btn" id="nextMonthBtn">→</button>
             </div>
             <div class="weekdays">
-                <span>Ahd</span><span>Isn</span><span>Sel</span><span>Rab</span><span>Kha</span><span>Jum</span><span>Sab</span>
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
             </div>
             <div class="calendar-days" id="calendarDays"></div>
         </div>
 
         <div class="card reminder-section">
-            <h3 style="margin-bottom: 16px;">📋 Senarai Schedule</h3>
+            <h3 style="margin-bottom: 16px;">📋 Schedule List</h3>
             <div id="reminderList">Loading...</div>
         </div>
 
         <div class="card form-section">
-            <h3 style="margin-bottom: 16px;">✨ Tambah / Edit Reminder</h3>
-            <input type="text" id="reminderTitle" placeholder="Tajuk reminder *" style="margin-bottom: 12px;">
-            <input type="date" id="reminderDate" style="margin-bottom: 12px;">
-            <input type="time" id="reminderTime" placeholder="HH:MM" style="margin-bottom: 12px;">
-            <textarea id="reminderNotes" rows="2" placeholder="Nota tambahan (contoh: lokasi, pautan)" style="margin-bottom: 16px;"></textarea>
-            <button class="btn-primary" id="saveBtn">💾 Simpan Reminder</button>
+            <h3 style="margin-bottom: 16px;">✨ Add / Edit Reminder</h3>
+            <input type="text" id="reminderTitle" placeholder="Reminder title *" style="margin-bottom: 12px;">
+            <input type="date" id="reminderDate" placeholder="Select date" style="margin-bottom: 12px;">
+            <input type="time" id="reminderTime" placeholder="HH:MM (24h format)" style="margin-bottom: 12px;">
+            <textarea id="reminderNotes" rows="2" placeholder="Additional notes (e.g., location, link)" style="margin-bottom: 16px;"></textarea>
+            <button class="btn-primary" id="saveBtn">💾 Save Reminder</button>
             <input type="hidden" id="editId" value="">
         </div>
     </div>
@@ -380,13 +399,13 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
         <h3>✏️ Edit Reminder</h3>
-        <input type="text" id="modalTitle" placeholder="Tajuk" style="margin-bottom: 12px;">
+        <input type="text" id="modalTitle" placeholder="Title" style="margin-bottom: 12px;">
         <input type="date" id="modalDate" style="margin-bottom: 12px;">
-        <input type="time" id="modalTime" style="margin-bottom: 12px;">
-        <textarea id="modalNotes" rows="2" placeholder="Nota"></textarea>
+        <input type="time" id="modalTime" placeholder="HH:MM" style="margin-bottom: 12px;">
+        <textarea id="modalNotes" rows="2" placeholder="Notes"></textarea>
         <div class="modal-buttons">
-            <button id="modalCancelBtn">Batal</button>
-            <button id="modalSaveBtn">Simpan</button>
+            <button id="modalCancelBtn">Cancel</button>
+            <button id="modalSaveBtn">Save</button>
         </div>
     </div>
 </div>
@@ -399,7 +418,8 @@
   storageBucket: "myschedule2050.firebasestorage.app",
   messagingSenderId: "483213696345",
   appId: "1:483213696345:web:8f6bc228ddfafb5b98c048"
-};
+    };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -439,7 +459,7 @@
             syncStatus.style.background = "#10b98120";
             syncStatus.style.color = "#059669";
         } catch (error) {
-            syncStatus.innerText = "⚠️ Ralat Firebase";
+            syncStatus.innerText = "⚠️ Firebase Error";
             syncStatus.style.background = "#fee2e2";
             syncStatus.style.color = "#dc2626";
         }
@@ -450,7 +470,7 @@
         const date = reminderDate.value;
         const time = reminderTime.value || "00:00";
         const notes = reminderNotes.value.trim();
-        if (!title || !date) return alert("Tajuk dan tarikh wajib diisi!");
+        if (!title || !date) return alert("Title and date are required!");
         
         const data = { title, date, time, notes };
         try {
@@ -463,12 +483,12 @@
             editId.value = "";
             await loadReminders();
         } catch (error) {
-            alert("Gagal simpan: " + error.message);
+            alert("Failed to save: " + error.message);
         }
     };
 
     window.deleteReminder = async (id) => {
-        if (confirm("Padam reminder ini?")) {
+        if (confirm("Delete this reminder?")) {
             await db.collection('reminders').doc(id).delete();
             await loadReminders();
         }
@@ -490,7 +510,7 @@
             time: modalTime.value || "00:00",
             notes: modalNotes.value.trim()
         };
-        if (!data.title || !data.date) return alert("Tajuk dan tarikh wajib diisi!");
+        if (!data.title || !data.date) return alert("Title and date are required!");
         await db.collection('reminders').doc(currentEditId).update(data);
         modal.style.display = "none";
         await loadReminders();
@@ -521,7 +541,7 @@
     function renderReminderList() {
         const filtered = filterReminders();
         if (!filtered.length) {
-            reminderListDiv.innerHTML = '<div style="text-align:center;color:gray;padding:20px;">✨ Tiada jadual. Tambah baru!</div>';
+            reminderListDiv.innerHTML = '<div style="text-align:center;color:gray;padding:20px;">✨ No schedules. Add new!</div>';
             return;
         }
         reminderListDiv.innerHTML = filtered.map(rem => `
@@ -532,7 +552,7 @@
                     ${rem.notes ? `<div class="reminder-notes">📝 ${escapeHtml(rem.notes)}</div>` : ''}
                 </div>
                 <div>
-                    <button class="delete-btn" onclick="deleteReminder('${rem.id}')">Hapus</button>
+                    <button class="delete-btn" onclick="deleteReminder('${rem.id}')">Delete</button>
                     <button class="edit-btn" onclick="openEditModal(${JSON.stringify(rem)})">Edit</button>
                 </div>
             </div>
@@ -544,6 +564,14 @@
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
 
+    function getDatesWithReminders() {
+        const dateMap = {};
+        reminders.forEach(rem => {
+            dateMap[rem.date] = true;
+        });
+        return dateMap;
+    }
+
     function renderCalendar() {
         const year = currentViewDate.getFullYear();
         const month = currentViewDate.getMonth();
@@ -551,7 +579,7 @@
         const startWeekday = firstDay.getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
-        const monthNames = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
         
         let html = '';
@@ -559,13 +587,20 @@
         
         const today = new Date();
         const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        const datesWithReminders = getDatesWithReminders();
         
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             let classes = 'day-cell';
             if (dateStr === selectedDate) classes += ' selected';
             if (dateStr === todayStr) classes += ' today';
-            html += `<div class="${classes}" data-date="${dateStr}">${d}</div>`;
+            
+            const hasReminder = datesWithReminders[dateStr];
+            
+            html += `<div class="${classes}" data-date="${dateStr}">
+                        <div class="day-number">${d}</div>
+                        ${hasReminder ? '<div class="reminder-dot"></div>' : '<div style="height:4px;"></div>'}
+                     </div>`;
         }
         calendarDaysDiv.innerHTML = html;
         
