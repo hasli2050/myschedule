@@ -158,7 +158,7 @@
         .reminder-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         
         .category-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; font-weight: 600; }
-        .cat-work { background: #3b82f6; } .cat-personal { background: #8b5cf6; } .cat-health { background: #10b981; } .cat-finance { background: #f59e0b; } .cat-other { background: #6b7280; }
+        .cat-work { background: #3b82f6; } .cat-personal { background: #8b5cf6; } .cat-family { background: #10b981; } .cat-finance { background: #f59e0b; } .cat-other { background: #6b7280; }
         .priority-badge { font-size: 10px; font-weight: 700; }
 
         .subtasks-list { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
@@ -280,7 +280,7 @@
                 <div class="filter-chip active" data-cat="all">All</div>
                 <div class="filter-chip" data-cat="work">💼 Work</div>
                 <div class="filter-chip" data-cat="personal">👤 Personal</div>
-                <div class="filter-chip" data-cat="health">💚 Health</div>
+                <div class="filter-chip" data-cat="family">💚 Family</div>
                 <div class="filter-chip" data-cat="finance">💰 Finance</div>
                 <div class="filter-chip" data-cat="other">📌 Other</div>
             </div>
@@ -309,7 +309,7 @@
                     <select id="reminderCategory">
                         <option value="work">💼 Work</option>
                         <option value="personal">👤 Personal</option>
-                        <option value="health">💚 Health</option>
+                        <option value="family">💚 Family</option>
                         <option value="finance">💰 Finance</option>
                         <option value="other">📌 Other</option>
                     </select>
@@ -397,7 +397,7 @@
                 <select id="modalCategory">
                     <option value="work">💼 Work</option>
                     <option value="personal">👤 Personal</option>
-                    <option value="health">💚 Health</option>
+                    <option value="family">💚 Family</option>
                     <option value="finance">💰 Finance</option>
                     <option value="other">📌 Other</option>
                 </select>
@@ -764,7 +764,7 @@ function renderReminderList() {
     if (filtered.length === 0) { reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No reminders for this period</p></div>`; return; }
     
     filtered.forEach(rem => {
-        const catLabels = { work: '💼 Work', personal: '👤 Personal', health: '💚 Health', finance: '💰 Finance', other: '📌 Other' };
+        const catLabels = { work: '💼 Work', personal: '👤 Personal', family: '💚 Family', finance: '💰 Finance', other: '📌 Other' };
         const priorityLabels = { high: '🔴 HIGH', medium: '🟡 MED', low: '🟢 LOW' };
         const div = document.createElement('div');
         div.className = `reminder-item priority-${rem.priority || 'medium'} ${rem.completed ? 'completed' : ''}`;
