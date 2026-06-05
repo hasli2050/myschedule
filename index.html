@@ -44,7 +44,7 @@
             background: var(--bg-primary);
             min-height: 100vh;
             padding: 16px;
-            padding-bottom: 90px; /* Space for bottom nav */
+            padding-bottom: 90px;
             color: var(--text-primary);
             transition: all 0.3s ease;
         }
@@ -104,7 +104,7 @@
         }
 
         .card { background: var(--bg-card); border-radius: 24px; padding: 20px; box-shadow: 0 8px 20px var(--shadow); }
-        .card h3 { margin-bottom: 16px; font-size: 16px; }
+        .card h3 { margin-bottom: 16px; font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
 
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .month-year { font-size: 16px; font-weight: 700; }
@@ -158,11 +158,11 @@
         .reminder-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         
         .category-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; font-weight: 600; }
-        .cat-work { background: #3b82f6; } .cat-personal { background: #8b5cf6; } .cat-family { background: #10b981; } .cat-finance { background: #f59e0b; } .cat-other { background: #6b7280; }
+        .cat-work { background: #3b82f6; } .cat-personal { background: #8b5cf6; } .cat-health { background: #10b981; } .cat-finance { background: #f59e0b; } .cat-other { background: #6b7280; }
         .priority-badge { font-size: 10px; font-weight: 700; }
 
         .subtasks-list { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
-        .subtask-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-primary); margin-bottom: 4px; }
+        .subtask-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-primary); margin-bottom: 4px; cursor: pointer; }
         .subtask-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
         .subtask-item.done span { text-decoration: line-through; color: var(--text-secondary); }
 
@@ -178,7 +178,7 @@
         }
         .fab:active { transform: scale(0.9); }
 
-        /* BOTTOM NAVIGATION */
+        /* BOTTOM NAVIGATION (5 Items) */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-card); border-top: 1px solid var(--border);
             display: flex; justify-content: space-around; align-items: center; padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
@@ -186,10 +186,11 @@
         }
         .nav-item {
             background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px;
-            color: var(--text-secondary); font-size: 10px; font-weight: 600; cursor: pointer; padding: 4px 12px; border-radius: 12px; transition: all 0.2s;
+            color: var(--text-secondary); font-size: 10px; font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 12px; transition: all 0.2s; flex: 1;
         }
-        .nav-item .icon { font-size: 22px; }
+        .nav-item .icon { font-size: 20px; }
         .nav-item.active { color: var(--accent); }
+        .nav-item.active .icon { transform: scale(1.1); }
         .nav-item:active { transform: scale(0.9); }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
@@ -274,13 +275,13 @@
         </div>
 
         <div class="card reminder-section">
-            <h3>📋 Reminder List</h3>
+            <h3 id="reminderSectionTitle">📋 Reminder List</h3>
             <div class="search-box"><input type="text" id="searchInput" placeholder="Search reminders..."></div>
             <div class="filter-row" id="filterRow">
                 <div class="filter-chip active" data-cat="all">All</div>
                 <div class="filter-chip" data-cat="work">💼 Work</div>
                 <div class="filter-chip" data-cat="personal">👤 Personal</div>
-                <div class="filter-chip" data-cat="family">💚 Family</div>
+                <div class="filter-chip" data-cat="health">💚 Health</div>
                 <div class="filter-chip" data-cat="finance">💰 Finance</div>
                 <div class="filter-chip" data-cat="other">📌 Other</div>
             </div>
@@ -309,7 +310,7 @@
                     <select id="reminderCategory">
                         <option value="work">💼 Work</option>
                         <option value="personal">👤 Personal</option>
-                        <option value="family">💚 Family</option>
+                        <option value="health">💚 Health</option>
                         <option value="finance">💰 Finance</option>
                         <option value="other">📌 Other</option>
                     </select>
@@ -340,7 +341,7 @@
                     <button type="button" id="addSubtaskBtn">Add</button>
                 </div>
                 <div class="subtask-chips" id="subtaskChips"></div>
-            </div2>
+            </div>
             <div class="form-group">
                 <label>Notes</label>
                 <textarea id="reminderNotes" rows="2" placeholder="Location, links, etc..."></textarea>
@@ -353,23 +354,27 @@
 
 <button class="fab" id="fabBtn" title="Quick Add">+</button>
 
-<!-- Bottom Navigation -->
+<!-- Bottom Navigation (5 Sections) -->
 <nav class="bottom-nav">
-    <button class="nav-item active" data-view="dashboard">
+    <button class="nav-item" data-view="today">
+        <span class="icon">📅</span>
+        <span>Today</span>
+    </button>
+    <button class="nav-item" data-view="tomorrow">
+        <span class="icon">⏭️</span>
+        <span>Tomorrow</span>
+    </button>
+    <button class="nav-item active" data-view="home">
         <span class="icon">🏠</span>
         <span>Home</span>
     </button>
-    <button class="nav-item" data-view="calendar">
-        <span class="icon">📅</span>
-        <span>Calendar</span>
+    <button class="nav-item" data-view="week">
+        <span class="icon">🗓️</span>
+        <span>This Week</span>
     </button>
-    <button class="nav-item" data-view="stats">
-        <span class="icon">📊</span>
-        <span>Stats</span>
-    </button>
-    <button class="nav-item" data-view="settings">
-        <span class="icon">⚙️</span>
-        <span>More</span>
+    <button class="nav-item" data-view="month">
+        <span class="icon">📆</span>
+        <span>This Month</span>
     </button>
 </nav>
 
@@ -397,7 +402,7 @@
                 <select id="modalCategory">
                     <option value="work">💼 Work</option>
                     <option value="personal">👤 Personal</option>
-                    <option value="family">💚 Family</option>
+                    <option value="health">💚 Health</option>
                     <option value="finance">💰 Finance</option>
                     <option value="other">📌 Other</option>
                 </select>
@@ -472,19 +477,27 @@ function getTodayStr() {
     return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 }
 
+function getTomorrowStr() {
+    const t = new Date();
+    t.setDate(t.getDate() + 1);
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+
 let currentViewDate = new Date();
 let selectedDate = getTodayStr();
+let currentNavView = 'home'; // today, tomorrow, home, week, month
 let reminders = [];
 let currentEditId = null;
 let currentFilter = 'all';
 let searchQuery = '';
 let currentPopupReminder = null;
-let tempSubtasks = []; // For form handling
+let tempSubtasks = [];
 
 const $ = id => document.getElementById(id);
 const calendarDaysDiv = $('calendarDays');
 const monthYearDisplay = $('monthYearDisplay');
 const reminderListDiv = $('reminderList');
+const reminderSectionTitle = $('reminderSectionTitle');
 const syncStatus = $('syncStatus');
 const modal = $('editModal');
 const reminderPopup = $('reminderPopup');
@@ -658,7 +671,6 @@ async function toggleComplete(id) {
     const rem = reminders.find(r => r.id === id);
     if (!rem) return;
     
-    // RECURRING LOGIC: If completing a recurring task, create the next one
     if (rem.recurring && rem.recurring !== 'none' && !rem.completed) {
         const nextDate = getNextDate(rem.date, rem.recurring);
         const newRem = { ...rem, id: undefined, date: nextDate, completed: false, createdAt: new Date().toISOString() };
@@ -712,21 +724,45 @@ $('modalSaveBtn').onclick = async () => {
 $('modalCancelBtn').onclick = () => { haptic(); modal.classList.remove('show'); };
 
 // ========================
-// 6. UI RENDERING
+// 6. UI RENDERING & NAV LOGIC
 // ========================
-function getFilteredReminders() {
-    return reminders.filter(r => {
-        const rDate = new Date(r.date + "T00:00:00");
-        const viewYear = currentViewDate.getFullYear();
-        const viewMonth = currentViewDate.getMonth();
-        let periodMatch = false;
-        // Simplified period matching for dashboard view
-        periodMatch = r.date === selectedDate; 
-        
+function getActiveReminders() {
+    let filtered = [...reminders];
+    const todayStr = getTodayStr();
+    const tomorrowStr = getTomorrowStr();
+    const now = new Date();
+    
+    // 1. Apply Time/Nav Filter
+    if (currentNavView === 'today') {
+        filtered = filtered.filter(r => r.date === todayStr);
+    } else if (currentNavView === 'tomorrow') {
+        filtered = filtered.filter(r => r.date === tomorrowStr);
+    } else if (currentNavView === 'week') {
+        const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay()); startOfWeek.setHours(0,0,0,0);
+        const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate() + 6); endOfWeek.setHours(23,59,59,999);
+        filtered = filtered.filter(r => {
+            const d = new Date(r.date + "T00:00:00");
+            return d >= startOfWeek && d <= endOfWeek;
+        });
+    } else if (currentNavView === 'month') {
+        filtered = filtered.filter(r => {
+            const d = new Date(r.date + "T00:00:00");
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        });
+    } else if (currentNavView === 'home') {
+        // Home shows reminders for the currently selected calendar date
+        filtered = filtered.filter(r => r.date === selectedDate);
+    }
+
+    // 2. Apply Search & Category Filter
+    filtered = filtered.filter(r => {
         const catMatch = currentFilter === 'all' || r.category === currentFilter;
         const searchMatch = !searchQuery || r.title.toLowerCase().includes(searchQuery.toLowerCase()) || (r.notes && r.notes.toLowerCase().includes(searchQuery.toLowerCase()));
-        return periodMatch && catMatch && searchMatch;
-    }).sort((a,b) => {
+        return catMatch && searchMatch;
+    });
+
+    // 3. Sort
+    return filtered.sort((a,b) => {
         if (a.completed !== b.completed) return a.completed ? 1 : -1;
         if (a.date === b.date) return (a.time||'').localeCompare(b.time||'');
         return a.date.localeCompare(b.date);
@@ -753,18 +789,42 @@ function renderCalendar() {
         cell.onclick = () => {
             haptic();
             selectedDate = cell.dataset.date;
-            renderCalendar(); renderReminderList();
+            $('reminderDate').value = selectedDate; // AUTO-FILL FORM
+            currentNavView = 'home'; // Switch back to home view context
+            updateNavActiveState('home');
+            renderCalendar();
+            renderReminderList();
         };
     });
 }
 
+function updateNavActiveState(view) {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.view === view);
+    });
+}
+
 function renderReminderList() {
+    const filtered = getActiveReminders();
+    
+    // Update Section Title based on Nav
+    const viewTitles = {
+        'today': '📅 Reminders for Today',
+        'tomorrow': '⏭️ Reminders for Tomorrow',
+        'week': '🗓️ Reminders This Week',
+        'month': '📆 Reminders This Month',
+        'home': `📋 Reminders for ${selectedDate}`
+    };
+    reminderSectionTitle.textContent = viewTitles[currentNavView] || '📋 Reminder List';
+
     reminderListDiv.innerHTML = '';
-    const filtered = getFilteredReminders();
-    if (filtered.length === 0) { reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No reminders for this period</p></div>`; return; }
+    if (filtered.length === 0) { 
+        reminderListDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No reminders for this period</p></div>`; 
+        return; 
+    }
     
     filtered.forEach(rem => {
-        const catLabels = { work: '💼 Work', personal: '👤 Personal', family: '💚 Family', finance: '💰 Finance', other: '📌 Other' };
+        const catLabels = { work: '💼 Work', personal: '👤 Personal', health: '💚 Health', finance: '💰 Finance', other: '📌 Other' };
         const priorityLabels = { high: '🔴 HIGH', medium: '🟡 MED', low: '🟢 LOW' };
         const div = document.createElement('div');
         div.className = `reminder-item priority-${rem.priority || 'medium'} ${rem.completed ? 'completed' : ''}`;
@@ -880,22 +940,23 @@ $('popupComplete').onclick = () => {
 };
 $('popupDismiss').onclick = () => { haptic(); reminderPopup.classList.remove('show'); };
 
-// Bottom Navigation Logic
+// Bottom Navigation Logic (5 Sections)
 document.querySelectorAll('.nav-item').forEach(item => {
     item.onclick = () => {
         haptic();
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
         const view = item.dataset.view;
+        currentNavView = view;
+        updateNavActiveState(view);
         
-        // Simple view switching by scrolling to section or showing/hiding
-        if (view === 'dashboard' || view === 'calendar') {
+        if (view === 'home') {
+            // Reset to calendar selected date
+            renderReminderList();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else if (view === 'stats') {
-            document.querySelector('.stats-bar').scrollIntoView({ behavior: 'smooth' });
-        } else if (view === 'settings') {
-            showToast("⚙️", "Settings", "Export/Import & Theme options available in header!");
-            $('themeBtn').click(); // Demo action
+        } else {
+            // Show specific filtered list
+            renderReminderList();
+            // Scroll to reminder list to show the filtered results
+            document.querySelector('.reminder-section').scrollIntoView({ behavior: 'smooth' });
         }
     };
 });
