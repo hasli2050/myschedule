@@ -178,7 +178,7 @@
         }
         .fab:active { transform: scale(0.9); }
 
-        /* BOTTOM NAVIGATION (5 Items) */
+        /* BOTTOM NAVIGATION (Right-hand optimized) */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-card); border-top: 1px solid var(--border);
             display: flex; justify-content: space-around; align-items: center; padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
@@ -354,27 +354,27 @@
 
 <button class="fab" id="fabBtn" title="Quick Add">+</button>
 
-<!-- Bottom Navigation (5 Sections) -->
+<!-- Bottom Navigation (Right-hand optimized: Month | Week | Home | Tomorrow | Today) -->
 <nav class="bottom-nav">
-    <button class="nav-item" data-view="today">
-        <span class="icon">📅</span>
-        <span>Today</span>
-    </button>
-    <button class="nav-item" data-view="tomorrow">
-        <span class="icon">⏭️</span>
-        <span>Tomorrow</span>
-    </button>
-    <button class="nav-item active" data-view="home">
-        <span class="icon">🏠</span>
-        <span>Home</span>
+    <button class="nav-item" data-view="month">
+        <span class="icon">📆</span>
+        <span>This Month</span>
     </button>
     <button class="nav-item" data-view="week">
         <span class="icon">🗓️</span>
         <span>This Week</span>
     </button>
-    <button class="nav-item" data-view="month">
-        <span class="icon">📆</span>
-        <span>This Month</span>
+    <button class="nav-item active" data-view="home">
+        <span class="icon">🏠</span>
+        <span>Home</span>
+    </button>
+    <button class="nav-item" data-view="tomorrow">
+        <span class="icon">⏭️</span>
+        <span>Tomorrow</span>
+    </button>
+    <button class="nav-item" data-view="today">
+        <span class="icon">📅</span>
+        <span>Today</span>
     </button>
 </nav>
 
@@ -485,7 +485,7 @@ function getTomorrowStr() {
 
 let currentViewDate = new Date();
 let selectedDate = getTodayStr();
-let currentNavView = 'home'; // today, tomorrow, home, week, month
+let currentNavView = 'home'; // month, week, home, tomorrow, today
 let reminders = [];
 let currentEditId = null;
 let currentFilter = 'all';
@@ -940,7 +940,7 @@ $('popupComplete').onclick = () => {
 };
 $('popupDismiss').onclick = () => { haptic(); reminderPopup.classList.remove('show'); };
 
-// Bottom Navigation Logic (5 Sections)
+// Bottom Navigation Logic (Right-hand optimized)
 document.querySelectorAll('.nav-item').forEach(item => {
     item.onclick = () => {
         haptic();
@@ -949,13 +949,10 @@ document.querySelectorAll('.nav-item').forEach(item => {
         updateNavActiveState(view);
         
         if (view === 'home') {
-            // Reset to calendar selected date
             renderReminderList();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
-            // Show specific filtered list
             renderReminderList();
-            // Scroll to reminder list to show the filtered results
             document.querySelector('.reminder-section').scrollIntoView({ behavior: 'smooth' });
         }
     };
