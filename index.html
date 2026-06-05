@@ -124,7 +124,9 @@
         .search-box input { width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border); border-radius: 40px; font-size: 13px; background: var(--bg-soft); color: var(--text-primary); }
         .search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
 
-        .filter-row, .quick-filter-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .quick-filter-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .filter-row { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        
         .filter-chip { 
             padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; 
             border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-secondary); white-space: nowrap; 
@@ -264,7 +266,7 @@
         <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Total</div></div>
         <div class="stat-card"><div class="num" id="statPending" style="color:#f59e0b">0</div><div class="label">Pending</div></div>
         <div class="stat-card"><div class="num" id="statDone" style="color:#10b981">0</div><div class="label">Done</div></div>
-        <div class="stat-card"><div class="num" id="statOverdue" style="color:#ef4444">0</div><div class="label">Overdue</div></div
+        <div class="stat-card"><div class="num" id="statOverdue" style="color:#ef4444">0</div><div class="label">Overdue</div></div>
     </div>
 
     <div class="dashboard">
@@ -281,13 +283,12 @@
         <div class="card reminder-section">
             <h3 id="reminderSectionTitle">📋 Reminder List</h3>
             
-            <!-- NEW: Top Dashboard Quick Filter -->
             <div class="quick-filter-row" id="quickFilterRow">
                 <button class="filter-chip active" data-time="home">🏠 Home</button>
                 <button class="filter-chip" data-time="today">📅 Today</button>
                 <button class="filter-chip" data-time="week">🗓️ This Week</button>
                 <button class="filter-chip" data-time="month">📆 This Month</button>
-                <button class="filter-chip" data-time="year">🌍 This Year</button
+                <button class="filter-chip" data-time="year">🌍 This Year</button>
             </div>
 
             <div class="search-box"><input type="text" id="searchInput" placeholder="Search reminders..."></div>
@@ -368,7 +369,6 @@
 
 <button class="fab" id="fabBtn" title="Quick Add">+</button>
 
-<!-- Bottom Navigation (Right-hand optimized) -->
 <nav class="bottom-nav">
     <button class="nav-item" data-view="month">
         <span class="icon">📆</span>
@@ -392,7 +392,6 @@
     </button>
 </nav>
 
-<!-- Edit Modal -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <h3>✏️ Edit Reminder</h3>
@@ -451,7 +450,6 @@
     </div>
 </div>
 
-<!-- Full-screen Reminder Popup -->
 <div id="reminderPopup" class="reminder-popup">
     <div class="bell">🔔</div>
     <h2 id="popupTitle">Reminder!</h2>
@@ -462,13 +460,9 @@
     </div>
 </div>
 
-<!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-// ========================
-// 1. FIREBASE CONFIG
-// ========================
 const firebaseConfig = {
     apiKey: "AIzaSyDauPfcmdZ4mc5q72upoQVUGiUpzubD2KE",
     authDomain: "myschedule2050.firebaseapp.com",
@@ -481,9 +475,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 db.enablePersistence().catch(() => {});
 
-// ========================
-// 2. APP STATE & HAPTIC
-// ========================
 function haptic(ms = 30) { if (navigator.vibrate) navigator.vibrate(ms); }
 
 function getTodayStr() {
@@ -497,7 +488,6 @@ function getTomorrowStr() {
     return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 }
 
-// NEW: Helper to get Day Name
 function getDayName(dateStr) {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const d = new Date(dateStr + "T00:00:00");
@@ -524,9 +514,6 @@ const modal = $('editModal');
 const reminderPopup = $('reminderPopup');
 const toastContainer = $('toastContainer');
 
-// ========================
-// 3. NOTIFICATION SYSTEM
-// ========================
 async function requestNotificationPermission() {
     haptic();
     if (!("Notification" in window)) { showToast("⚠️", "Not Supported", "Browser does not support notifications."); return false; }
@@ -591,9 +578,6 @@ function checkReminders() {
     });
 }
 
-// ========================
-// 4. SUBTASK MANAGEMENT
-// ========================
 function renderSubtaskChips() {
     const container = $('subtaskChips');
     container.innerHTML = '';
@@ -620,9 +604,6 @@ $('addSubtaskBtn').onclick = () => {
 };
 $('subtaskInput').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); $('addSubtaskBtn').click(); } };
 
-// ========================
-// 5. FIREBASE CRUD
-// ========================
 async function loadReminders() {
     try {
         const snapshot = await db.collection('reminders').orderBy('date').get();
@@ -744,28 +725,23 @@ $('modalSaveBtn').onclick = async () => {
 };
 $('modalCancelBtn').onclick = () => { haptic(); modal.classList.remove('show'); };
 
-// ========================
-// 6. UI RENDERING & NAV LOGIC
-// ========================
 function getActiveReminders() {
     let filtered = [...reminders];
     const todayStr = getTodayStr();
     const tomorrowStr = getTomorrowStr();
     const now = new Date();
     
-    // 1. Apply Time/Nav Filter
     if (currentNavView === 'today') {
         filtered = filtered.filter(r => r.date === todayStr);
     } else if (currentNavView === 'tomorrow') {
         filtered = filtered.filter(r => r.date === tomorrowStr);
     } else if (currentNavView === 'week') {
-        // UPDATED: Week starts on Monday (Isnin)
-        const day = now.getDay() || 7; // Make Sunday (0) into 7
+        const day = now.getDay() || 7; 
         const startOfWeek = new Date(now); 
-        startOfWeek.setDate(now.getDate() - day + 1); // Monday
+        startOfWeek.setDate(now.getDate() - day + 1); 
         startOfWeek.setHours(0,0,0,0);
         const endOfWeek = new Date(startOfWeek); 
-        endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+        endOfWeek.setDate(startOfWeek.getDate() + 6); 
         endOfWeek.setHours(23,59,59,999);
         filtered = filtered.filter(r => {
             const d = new Date(r.date + "T00:00:00");
@@ -777,7 +753,6 @@ function getActiveReminders() {
             return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
         });
     } else if (currentNavView === 'year') {
-        // NEW: Year filter
         filtered = filtered.filter(r => {
             const d = new Date(r.date + "T00:00:00");
             return d.getFullYear() === now.getFullYear();
@@ -786,14 +761,12 @@ function getActiveReminders() {
         filtered = filtered.filter(r => r.date === selectedDate);
     }
 
-    // 2. Apply Search & Category Filter
     filtered = filtered.filter(r => {
         const catMatch = currentFilter === 'all' || r.category === currentFilter;
         const searchMatch = !searchQuery || r.title.toLowerCase().includes(searchQuery.toLowerCase()) || (r.notes && r.notes.toLowerCase().includes(searchQuery.toLowerCase()));
         return catMatch && searchMatch;
     });
 
-    // 3. Sort
     return filtered.sort((a,b) => {
         if (a.completed !== b.completed) return a.completed ? 1 : -1;
         if (a.date === b.date) return (a.time||'').localeCompare(b.time||'');
@@ -807,9 +780,8 @@ function renderCalendar() {
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
     
-    // UPDATED: Calendar grid starts on Monday
     let firstDay = new Date(year, month, 1).getDay();
-    firstDay = firstDay === 0 ? 6 : firstDay - 1; // Shift Sunday to end
+    firstDay = firstDay === 0 ? 6 : firstDay - 1; 
     
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const prevMonthDays = new Date(year, month, 0).getDate();
@@ -888,7 +860,6 @@ function renderReminderList() {
                     <h4>${rem.completed ? '✅ ' : ''}${rem.title}</h4>
                     <div class="reminder-meta">
                         <span>🕒 ${rem.time || '--:--'}</span>
-                        <!-- NEW: Auto Day Name Display -->
                         <span>📅 ${getDayName(rem.date)}, ${rem.date}</span>
                         <span class="category-badge cat-${rem.category || 'other'}">${catLabels[rem.category || 'other']}</span>
                         <span class="priority-badge">${priorityLabels[rem.priority || 'medium']}</span>
@@ -946,15 +917,11 @@ function renderStats() {
 
 function renderAll() { renderCalendar(); renderReminderList(); renderStats(); renderUpNext(); }
 
-// ========================
-// 7. EVENT LISTENERS & NAV
-// ========================
 $('prevMonthBtn').onclick = () => { haptic(); currentViewDate.setMonth(currentViewDate.getMonth() - 1); renderCalendar(); };
 $('nextMonthBtn').onclick = () => { haptic(); currentViewDate.setMonth(currentViewDate.getMonth() + 1); renderCalendar(); };
 
 $('searchInput').oninput = (e) => { searchQuery = e.target.value; renderReminderList(); };
 
-// Category Filter
 document.querySelectorAll('#filterRow .filter-chip').forEach(chip => { 
     chip.onclick = () => { 
         haptic(); 
@@ -965,15 +932,13 @@ document.querySelectorAll('#filterRow .filter-chip').forEach(chip => {
     }; 
 });
 
-// NEW: Top Quick Filter Logic
 document.querySelectorAll('#quickFilterRow .filter-chip').forEach(chip => {
     chip.onclick = () => {
         haptic();
         const view = chip.dataset.time;
         currentNavView = view;
         updateQuickFilterActive(view);
-        updateNavActiveState(view); // Sync with bottom nav if applicable
-        
+        updateNavActiveState(view);
         renderReminderList();
         if (view !== 'home') {
             document.querySelector('.reminder-section').scrollIntoView({ behavior: 'smooth' });
@@ -1004,15 +969,13 @@ $('popupComplete').onclick = () => {
 };
 $('popupDismiss').onclick = () => { haptic(); reminderPopup.classList.remove('show'); };
 
-// Bottom Navigation Logic
 document.querySelectorAll('.nav-item').forEach(item => {
     item.onclick = () => {
         haptic();
         const view = item.dataset.view;
         currentNavView = view;
         updateNavActiveState(view);
-        updateQuickFilterActive(view); // Sync with top filter
-        
+        updateQuickFilterActive(view);
         renderReminderList();
         if (view === 'home') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1025,9 +988,6 @@ document.querySelectorAll('.nav-item').forEach(item => {
 window.addEventListener('online', () => { syncStatus.innerHTML = "<span>✅</span> <span>Sync Live</span>"; syncStatus.className = "sync-status"; });
 window.addEventListener('offline', () => { syncStatus.innerHTML = "<span>📡</span> <span>Offline Mode</span>"; syncStatus.className = "sync-status offline"; });
 
-// ========================
-// 8. INITIALIZATION
-// ========================
 if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); $('themeBtn').textContent = '☀️'; }
 $('reminderDate').value = getTodayStr();
 setInterval(checkReminders, 15000); setTimeout(checkReminders, 2000);
